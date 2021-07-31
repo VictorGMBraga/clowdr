@@ -523,5 +523,8 @@ export class AwsStack extends cdk.Stack {
 
         // Elemental
         new cdk.CfnOutput(this, "MediaLiveInputSecurityGroupId", { value: inputSecurityGroup.ref });
+
+        // This stack
+        new cdk.CfnOutput(this, "CloudFormationStackArn", { value: this.stackId });
     }
 }

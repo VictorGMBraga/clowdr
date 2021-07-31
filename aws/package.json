@@ -8,7 +8,8 @@
         "build": "tsc",
         "watch": "tsc -w",
         "test": "jest",
-        "cdk": "cdk"
+        "cdk": "cdk",
+        "deploy:all": "cdk deploy --all"
     },
     "devDependencies": {
         "@aws-cdk/assert": "^1.111.0",
@@ -34,6 +35,7 @@
         "@aws-cdk/aws-sns-subscriptions": "^1.111.0",
         "@aws-cdk/aws-sqs": "^1.111.0",
         "@aws-cdk/core": "^1.111.0",
+        "cdk": "^1.111.0",
         "source-map-support": "^0.5.19"
     },
     "engines": {
