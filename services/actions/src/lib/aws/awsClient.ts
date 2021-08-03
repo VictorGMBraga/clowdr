@@ -1,5 +1,4 @@
 import { Chime } from "@aws-sdk/client-chime";
-import { CloudFront } from "@aws-sdk/client-cloudfront";
 import { ElasticTranscoder } from "@aws-sdk/client-elastic-transcoder";
 import { IAM } from "@aws-sdk/client-iam";
 import { MediaConvert } from "@aws-sdk/client-mediaconvert";
@@ -96,11 +95,6 @@ const transcoder = new ElasticTranscoder({
 });
 
 const mediaPackage = new MediaPackage({
-    credentials,
-    region,
-});
-
-const cloudFront = new CloudFront({
     credentials,
     region,
 });
@@ -270,7 +264,6 @@ export {
     transcribe as Transcribe,
     transcoder as ElasticTranscoder,
     mediaPackage as MediaPackage,
-    cloudFront as CloudFront,
     sts as STS,
     chime as Chime,
     initialiseAwsClient,

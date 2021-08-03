@@ -16,253 +16,72 @@ export class AwsStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: AwsStackProps) {
         super(scope, id, props);
 
-        // Create user account to be used by the actions service
+        /** S3 **/
+        const bucket = this.createContentS3Bucket();
+
+        /** Shared policies **/
+        const cloudFormationIntrospectionPolicy = this.createCloudFormationIntrospectionPolicy();
+        const transcribeFullAccessPolicy = this.createTranscribeFullAccessPolicy();
+
+        /** Shared roles **/
+        const mediaLiveServiceRole = this.createMediaLiveServiceRole(bucket);
+        const mediaPackageServiceRole = this.createMediaPackageServiceRole(bucket);
+        const mediaConvertServiceRole = this.createMediaConvertServiceRole(bucket);
+        const transcribeServiceRole = this.createTranscribeServiceRole(bucket);
+        const elasticTranscoderServiceRole = this.createElasticTranscodeServiceRole(bucket);
+
+        /** SNS topics **/
+        const cloudFormationNotificationTopic = this.createCloudFormationNotificationTopic();
+
+        /** Actions service **/
         const actionsUser = new iam.User(this, "ActionsUser", {});
+        const actionsUserAccessKey = new iam.CfnAccessKey(this, "ActionsUserAccessKey", {
+            userName: actionsUser.userName,
+        });
 
         actionsUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSElementalMediaLiveFullAccess"));
         actionsUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSElementalMediaConvertFullAccess"));
         actionsUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSElementalMediaPackageFullAccess"));
-        actionsUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("CloudFrontFullAccess"));
         actionsUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonElasticTranscoder_FullAccess"));
-        actionsUser.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["transcribe:*"],
-                effect: iam.Effect.ALLOW,
-                resources: ["*"],
-            })
-        );
-        actionsUser.addToPolicy(
-            new iam.PolicyStatement({
-                actions: [
-                    "cloudformation:CreateChangeSet",
-                    "cloudformation:CreateStack",
-                    "cloudformation:DeleteStack",
-                    "cloudformation:DeleteChangeSet",
-                    "cloudformation:DescribeChangeSet",
-                    "cloudformation:DescribeStacks",
-                    "cloudformation:DescribeStackEvents",
-                    "cloudformation:DescribeStackResources",
-                    "cloudformation:ExecuteChangeSet",
-                    "cloudformation:GetTemplate",
-                    "cloudformation:ValidateTemplate",
-                ],
-                effect: iam.Effect.ALLOW,
-                resources: [
-                    `arn:aws:cloudformation:${props.env?.region}:${props.env?.account}:stack/room-*/*`,
-                    `arn:aws:cloudformation:${props.env?.region}:${props.env?.account}:stack/CDKToolkit/*`,
-                ],
-            })
-        );
-        actionsUser.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["s3:*Object", "s3:ListBucket", "s3:GetBucketLocation"],
-                effect: iam.Effect.ALLOW,
-                resources: ["arn:aws:s3:::cdktoolkit-stagingbucket-*"],
-            })
-        );
 
-        const chimeFullAccessPolicy = new iam.Policy(this, "ChimeFullAccess");
-        chimeFullAccessPolicy.addStatements(
-            new iam.PolicyStatement({
-                actions: [
-                    "chime:CreateMeeting",
-                    "chime:DeleteMeeting",
-                    "chime:GetMeeting",
-                    "chime:ListMeetings",
-                    "chime:CreateAttendee",
-                    "chime:BatchCreateAttendee",
-                    "chime:DeleteAttendee",
-                    "chime:GetAttendee",
-                    "chime:ListAttendees",
-                    "chime:ListAttendeeTags",
-                    "chime:ListMeetingTags",
-                    "chime:ListTagsForResource",
-                    "chime:TagAttendee",
-                    "chime:TagMeeting",
-                    "chime:TagResource",
-                    "chime:UntagAttendee",
-                    "chime:UntagMeeting",
-                    "chime:UntagResource",
-                ],
-                effect: iam.Effect.ALLOW,
-                resources: ["*"],
-            })
-        );
-        const chimeManagerRole = new iam.Role(this, "ChimeManager", { assumedBy: actionsUser });
-        chimeFullAccessPolicy.attachToRole(chimeManagerRole);
-
-        const accessKey = new iam.CfnAccessKey(this, "accessKey", {
-            userName: actionsUser.userName,
-        });
-
-        /* S3 */
-
-        // Create S3 bucket for content items
-        const bucket = new s3.Bucket(this, "ContentBucket", {
-            blockPublicAccess: {
-                blockPublicAcls: true,
-                blockPublicPolicy: false,
-                ignorePublicAcls: true,
-                restrictPublicBuckets: false,
-            },
-        });
-
-        bucket.grantPut(actionsUser);
-        bucket.grantReadWrite(actionsUser);
-        bucket.grantPublicAccess();
-        bucket.addCorsRule({
-            allowedMethods: [HttpMethods.GET, HttpMethods.PUT, HttpMethods.POST],
-            allowedOrigins: ["*"],
-            exposedHeaders: ["ETag"],
-            maxAge: 3000,
-            allowedHeaders: ["Authorization", "x-amz-date", "x-amz-content-sha256", "content-type"],
-        });
-        bucket.addCorsRule({
-            allowedHeaders: [],
-            allowedMethods: [HttpMethods.GET],
-            allowedOrigins: ["*"],
-            exposedHeaders: [],
-            maxAge: 3000,
-        });
-
-        /* Service Roles */
-
-        // Create a role to be used by the MediaLive service when performing actions
-        const mediaLiveAccessRole = new iam.Role(this, "MediaLiveRole", {
-            assumedBy: new iam.ServicePrincipal("medialive.amazonaws.com"),
-        });
-
-        // Allow the actions user to pass the MediaLiveRole to MediaLive
-        mediaLiveAccessRole.grantPassRole(actionsUser);
-        bucket.grantReadWrite(mediaLiveAccessRole);
-
-        mediaLiveAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: [
-                    "mediastore:ListContainers",
-                    "mediastore:PutObject",
-                    "mediastore:GetObject",
-                    "mediastore:DeleteObject",
-                    "mediastore:DescribeObject",
-                ],
-                resources: ["*"],
-                effect: iam.Effect.ALLOW,
-            })
-        );
-        mediaLiveAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "logs:DescribeLogStreams",
-                    "logs:DescribeLogGroups",
-                ],
-                resources: ["arn:aws:logs:*:*:*"],
-                effect: iam.Effect.ALLOW,
-            })
-        );
-        mediaLiveAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: [
-                    "mediaconnect:ManagedDescribeFlow",
-                    "mediaconnect:ManagedAddOutput",
-                    "mediaconnect:ManagedRemoveOutput",
-                ],
-                resources: ["*"],
-                effect: iam.Effect.ALLOW,
-            })
-        );
-        mediaLiveAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["mediapackage:DescribeChannel"],
-                resources: ["*"],
-                effect: iam.Effect.ALLOW,
-            })
-        );
-        mediaLiveAccessRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMReadOnlyAccess"));
-
-        // Create a role to be used by MediaPackage
-        const mediaPackageAccessRole = new iam.Role(this, "MediaPackageRole", {
-            assumedBy: new iam.ServicePrincipal("mediapackage.amazonaws.com"),
-        });
-
-        // Allow the actions user to pass the MediaPackageRole to MediaPackage
-        mediaPackageAccessRole.grantPassRole(actionsUser);
-
-        mediaPackageAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["s3:PutObject", "s3:ListBucket", "s3:GetBucketLocation"],
-                effect: iam.Effect.ALLOW,
-                resources: [bucket.bucketArn, `${bucket.bucketArn}/*`],
-            })
-        );
-
-        // Create a role to be used by MediaConvert
-        const mediaConvertAccessRole = new iam.Role(this, "MediaConvertRole", {
-            assumedBy: new iam.ServicePrincipal("mediaconvert.amazonaws.com"),
-        });
-        mediaConvertAccessRole.grantPassRole(actionsUser);
-        bucket.grantReadWrite(mediaConvertAccessRole);
-
-        mediaConvertAccessRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["apigateway:*"],
-                resources: ["*"],
-                effect: iam.Effect.ALLOW,
-            })
-        );
-
-        // Create a role to be used by Transcribe
-        const transcribeAccessRole = new iam.Role(this, "TranscribeRole", {
-            assumedBy: new iam.ServicePrincipal("transcribe.amazonaws.com"),
-        });
-        transcribeAccessRole.grantPassRole(actionsUser);
-        bucket.grantReadWrite(transcribeAccessRole);
-
-        /* Elastic Transcoder */
-        const elasticTranscoderServiceRole = new iam.Role(this, "ElasticTranscoderServiceRole", {
-            assumedBy: new iam.ServicePrincipal("elastictranscoder.amazonaws.com"),
-        });
-        elasticTranscoderServiceRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["s3:Put*", "s3:ListBucket", "s3:*MultipartUpload*", "s3:Get*"],
-                effect: iam.Effect.ALLOW,
-                resources: [bucket.bucketArn, `${bucket.bucketArn}/*`],
-            })
-        );
-        elasticTranscoderServiceRole.addToPolicy(
-            new iam.PolicyStatement({
-                actions: ["s3:*Delete*", "s3:*Policy*", "sns:*Remove*", "sns:*Delete*", "sns:*Permission*"],
-                effect: iam.Effect.DENY,
-                resources: ["*"],
-            })
-        );
+        mediaConvertServiceRole.grantPassRole(actionsUser);
+        mediaPackageServiceRole.grantPassRole(actionsUser);
+        transcribeServiceRole.grantPassRole(actionsUser);
         elasticTranscoderServiceRole.grantPassRole(actionsUser);
 
-        /* Notifications and webhooks */
+        actionsUser.addManagedPolicy(cloudFormationIntrospectionPolicy);
+        actionsUser.addManagedPolicy(transcribeFullAccessPolicy);
 
-        // CloudFormation notifications
-        const cloudFormationNotificationsTopic = new sns.Topic(this, "CloudFormationNotifications");
-        cloudFormationNotificationsTopic.grantPublish({
-            grantPrincipal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
-        });
-        cloudFormationNotificationsTopic.grantPublish({
-            grantPrincipal: actionsUser,
-        });
-        cloudFormationNotificationsTopic.addToResourcePolicy(
-            new iam.PolicyStatement({
-                actions: ["SNS:Subscribe"],
-                principals: [new iam.ArnPrincipal(actionsUser.userArn)],
-                resources: [cloudFormationNotificationsTopic.topicArn],
-                effect: iam.Effect.ALLOW,
-            })
+        const chimeManagerRole = this.createChimeManagerRole(actionsUser);
+
+        /** PLAYOUT SERVICE **/
+        const playoutUser = new iam.User(this, "PlayoutUser", {});
+
+        playoutUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSElementalMediaLiveFullAccess"));
+        playoutUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSElementalMediaPackageFullAccess"));
+        playoutUser.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("CloudFrontFullAccess"));
+
+        mediaLiveServiceRole.grantPassRole(playoutUser);
+
+        const deployChannelStackPolicy = this.createDeployChannelStackPolicy(
+            props.env?.region ?? this.region,
+            props.env?.account ?? this.account
         );
+        playoutUser.addManagedPolicy(deployChannelStackPolicy);
+
+        const subscriptionsPolicy = this.createSubscriptionPolicy(
+            playoutUser.node.id,
+            [playoutUser],
+            [cloudFormationNotificationTopic]
+        );
+        playoutUser.addManagedPolicy(subscriptionsPolicy);
+
+        /* Notifications and webhooks */
 
         // Transcoding notifications
         const mediaConvertNotificationsTopic = new sns.Topic(this, "TranscodeNotifications");
         mediaConvertNotificationsTopic.grantPublish({
-            grantPrincipal: new iam.ArnPrincipal(mediaConvertAccessRole.roleArn),
+            grantPrincipal: new iam.ArnPrincipal(mediaConvertServiceRole.roleArn),
         });
         mediaConvertNotificationsTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -282,7 +101,7 @@ export class AwsStack extends cdk.Stack {
                 ],
                 principals: [
                     new iam.ServicePrincipal("events.amazonaws.com"),
-                    new iam.ArnPrincipal(mediaConvertAccessRole.roleArn),
+                    new iam.ArnPrincipal(mediaConvertServiceRole.roleArn),
                 ],
                 resources: [mediaConvertNotificationsTopic.topicArn],
                 effect: iam.Effect.ALLOW,
@@ -318,7 +137,7 @@ export class AwsStack extends cdk.Stack {
         // MediaLive channel notifications
         const mediaLiveNotificationsTopic = new sns.Topic(this, "MediaLiveNotifications");
         mediaLiveNotificationsTopic.grantPublish({
-            grantPrincipal: new iam.ArnPrincipal(mediaLiveAccessRole.roleArn),
+            grantPrincipal: new iam.ArnPrincipal(mediaLiveServiceRole.roleArn),
         });
         mediaLiveNotificationsTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -338,7 +157,7 @@ export class AwsStack extends cdk.Stack {
                 ],
                 principals: [
                     new iam.ServicePrincipal("events.amazonaws.com"),
-                    new iam.ArnPrincipal(mediaLiveAccessRole.roleArn),
+                    new iam.ArnPrincipal(mediaLiveServiceRole.roleArn),
                 ],
                 resources: [mediaLiveNotificationsTopic.topicArn],
                 effect: iam.Effect.ALLOW,
@@ -368,7 +187,7 @@ export class AwsStack extends cdk.Stack {
         // MediaPackage harvest notifications
         const mediaPackageHarvestNotificationsTopic = new sns.Topic(this, "MediaPackageHarvestNotifications");
         mediaPackageHarvestNotificationsTopic.grantPublish({
-            grantPrincipal: new iam.ArnPrincipal(mediaPackageAccessRole.roleArn),
+            grantPrincipal: new iam.ArnPrincipal(mediaPackageServiceRole.roleArn),
         });
         mediaPackageHarvestNotificationsTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -388,7 +207,7 @@ export class AwsStack extends cdk.Stack {
                 ],
                 principals: [
                     new iam.ServicePrincipal("events.amazonaws.com"),
-                    new iam.ArnPrincipal(mediaPackageAccessRole.roleArn),
+                    new iam.ArnPrincipal(mediaPackageServiceRole.roleArn),
                 ],
                 resources: [mediaPackageHarvestNotificationsTopic.topicArn],
                 effect: iam.Effect.ALLOW,
@@ -464,11 +283,11 @@ export class AwsStack extends cdk.Stack {
 
         // Actions service access key
         new cdk.CfnOutput(this, "ActionsUserAccessKeyId", {
-            value: accessKey.ref,
+            value: actionsUserAccessKey.ref,
         });
 
         new cdk.CfnOutput(this, "ActionsUserSecretAccessKey", {
-            value: accessKey.attrSecretAccessKey,
+            value: actionsUserAccessKey.attrSecretAccessKey,
         });
 
         // Service roles
@@ -477,19 +296,19 @@ export class AwsStack extends cdk.Stack {
         });
 
         new cdk.CfnOutput(this, "MediaConvertServiceRoleArn", {
-            value: mediaConvertAccessRole.roleArn,
+            value: mediaConvertServiceRole.roleArn,
         });
 
         new cdk.CfnOutput(this, "MediaLiveServiceRoleArn", {
-            value: mediaLiveAccessRole.roleArn,
+            value: mediaLiveServiceRole.roleArn,
         });
 
         new cdk.CfnOutput(this, "MediaPackageRoleArn", {
-            value: mediaPackageAccessRole.roleArn,
+            value: mediaPackageServiceRole.roleArn,
         });
 
         new cdk.CfnOutput(this, "TranscribeServiceRoleArn", {
-            value: transcribeAccessRole.roleArn,
+            value: transcribeServiceRole.roleArn,
         });
 
         new cdk.CfnOutput(this, "ElasticTranscoderServiceRoleArn", {
@@ -526,5 +345,301 @@ export class AwsStack extends cdk.Stack {
 
         // This stack
         new cdk.CfnOutput(this, "CloudFormationStackArn", { value: this.stackId });
+    }
+
+    /**
+     * @returns a service role for AWS MediaLive
+     */
+    private createMediaLiveServiceRole(sourceBucket: s3.Bucket): iam.Role {
+        const mediaLiveAccessRole = new iam.Role(this, "MediaLiveRole", {
+            assumedBy: new iam.ServicePrincipal("medialive.amazonaws.com"),
+        });
+
+        sourceBucket.grantReadWrite(mediaLiveAccessRole);
+
+        mediaLiveAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "mediastore:ListContainers",
+                    "mediastore:PutObject",
+                    "mediastore:GetObject",
+                    "mediastore:DeleteObject",
+                    "mediastore:DescribeObject",
+                ],
+                resources: ["*"],
+                effect: iam.Effect.ALLOW,
+            })
+        );
+        mediaLiveAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "logs:DescribeLogStreams",
+                    "logs:DescribeLogGroups",
+                ],
+                resources: ["arn:aws:logs:*:*:*"],
+                effect: iam.Effect.ALLOW,
+            })
+        );
+        mediaLiveAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "mediaconnect:ManagedDescribeFlow",
+                    "mediaconnect:ManagedAddOutput",
+                    "mediaconnect:ManagedRemoveOutput",
+                ],
+                resources: ["*"],
+                effect: iam.Effect.ALLOW,
+            })
+        );
+        mediaLiveAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: ["mediapackage:DescribeChannel"],
+                resources: ["*"],
+                effect: iam.Effect.ALLOW,
+            })
+        );
+        mediaLiveAccessRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMReadOnlyAccess"));
+
+        return mediaLiveAccessRole;
+    }
+
+    /**
+     * @returns a service role for AWS MediaPackage
+     */
+    private createMediaPackageServiceRole(outputBucket: s3.Bucket): iam.Role {
+        const mediaPackageAccessRole = new iam.Role(this, "MediaPackageRole", {
+            assumedBy: new iam.ServicePrincipal("mediapackage.amazonaws.com"),
+        });
+        mediaPackageAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: ["s3:PutObject", "s3:ListBucket", "s3:GetBucketLocation"],
+                effect: iam.Effect.ALLOW,
+                resources: [outputBucket.bucketArn, `${outputBucket.bucketArn}/*`],
+            })
+        );
+
+        return mediaPackageAccessRole;
+    }
+
+    /**
+     * @returns a service role for AWS MediaConvert
+     */
+    private createMediaConvertServiceRole(bucket: s3.Bucket): iam.Role {
+        const mediaConvertAccessRole = new iam.Role(this, "MediaConvertRole", {
+            assumedBy: new iam.ServicePrincipal("mediaconvert.amazonaws.com"),
+        });
+        bucket.grantReadWrite(mediaConvertAccessRole);
+        mediaConvertAccessRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: ["apigateway:*"],
+                resources: ["*"],
+                effect: iam.Effect.ALLOW,
+            })
+        );
+
+        return mediaConvertAccessRole;
+    }
+
+    /**
+     * @returns a service role for Amazon Transcribe
+     */
+    private createTranscribeServiceRole(bucket: s3.Bucket): iam.Role {
+        const transcribeAccessRole = new iam.Role(this, "TranscribeRole", {
+            assumedBy: new iam.ServicePrincipal("transcribe.amazonaws.com"),
+        });
+        bucket.grantReadWrite(transcribeAccessRole);
+
+        return transcribeAccessRole;
+    }
+
+    /**
+     * @returns a service role for Elastic Transcode.
+     */
+    private createElasticTranscodeServiceRole(bucket: s3.Bucket): iam.Role {
+        const elasticTranscoderServiceRole = new iam.Role(this, "ElasticTranscoderServiceRole", {
+            assumedBy: new iam.ServicePrincipal("elastictranscoder.amazonaws.com"),
+        });
+        elasticTranscoderServiceRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: ["s3:Put*", "s3:ListBucket", "s3:*MultipartUpload*", "s3:Get*"],
+                effect: iam.Effect.ALLOW,
+                resources: [bucket.bucketArn, `${bucket.bucketArn}/*`],
+            })
+        );
+        elasticTranscoderServiceRole.addToPolicy(
+            new iam.PolicyStatement({
+                actions: ["s3:*Delete*", "s3:*Policy*", "sns:*Remove*", "sns:*Delete*", "sns:*Permission*"],
+                effect: iam.Effect.DENY,
+                resources: ["*"],
+            })
+        );
+
+        return elasticTranscoderServiceRole;
+    }
+
+    /**
+     * @returns a policy that grants full access to Amazon Transcribe.
+     */
+    private createTranscribeFullAccessPolicy(): iam.IManagedPolicy {
+        return new iam.ManagedPolicy(this, "TranscribeFullAccessPolicy", {
+            description: "Full access to all Amazon Transcribe resources.",
+            statements: [
+                new iam.PolicyStatement({
+                    actions: ["transcribe:*"],
+                    effect: iam.Effect.ALLOW,
+                    resources: ["*"],
+                }),
+            ],
+        });
+    }
+
+    /**
+     * @returns a policy that grants access to view the stack created by this class.
+     * @remarks The stack outputs can be used to perform automated service discovery, rather than manually copying every identifier into .env files.
+     */
+    private createCloudFormationIntrospectionPolicy(): iam.IManagedPolicy {
+        return new iam.ManagedPolicy(this, "CloudFormationIntrospectionPolicy", {
+            description: "Allows introspection of the AwsStack, giving access to the output values.",
+            statements: [
+                new iam.PolicyStatement({
+                    actions: ["cloudformation:DescribeStacks"],
+                    effect: iam.Effect.ALLOW,
+                    resources: [this.stackId],
+                }),
+            ],
+        });
+    }
+
+    /**
+     * @returns a policy that allows creation/removal of channel stacks in CloudFormation.
+     */
+    private createDeployChannelStackPolicy(region: string, accountId: string): iam.IManagedPolicy {
+        return new iam.ManagedPolicy(this, "CloudFormation_DeployChannelStackPolicy", {
+            description: "Allow creation, introspection and deletion of channel stacks in CloudFormation.",
+            statements: [
+                new iam.PolicyStatement({
+                    actions: [
+                        "cloudformation:CreateChangeSet",
+                        "cloudformation:CreateStack",
+                        "cloudformation:DeleteStack",
+                        "cloudformation:DeleteChangeSet",
+                        "cloudformation:DescribeChangeSet",
+                        "cloudformation:DescribeStacks",
+                        "cloudformation:DescribeStackEvents",
+                        "cloudformation:DescribeStackResources",
+                        "cloudformation:ExecuteChangeSet",
+                        "cloudformation:GetTemplate",
+                        "cloudformation:ValidateTemplate",
+                    ],
+                    effect: iam.Effect.ALLOW,
+                    resources: [
+                        `arn:aws:cloudformation:${region}:${accountId}:stack/room-*/*`,
+                        `arn:aws:cloudformation:${region}:${accountId}:stack/CDKToolkit/*`,
+                    ],
+                }),
+                new iam.PolicyStatement({
+                    actions: ["s3:*Object", "s3:ListBucket", "s3:GetBucketLocation"],
+                    effect: iam.Effect.ALLOW,
+                    resources: ["arn:aws:s3:::cdktoolkit-stagingbucket-*"],
+                }),
+            ],
+        });
+    }
+
+    /**
+     * @param assumedBy the principal that can assume the created role.
+     * @returns a role that has full access to Chime resources.
+     */
+    private createChimeManagerRole(assumedBy: iam.IPrincipal): iam.IRole {
+        const chimeFullAccessPolicy = new iam.Policy(this, "ChimeFullAccess");
+        chimeFullAccessPolicy.addStatements(
+            new iam.PolicyStatement({
+                actions: [
+                    "chime:CreateMeeting",
+                    "chime:DeleteMeeting",
+                    "chime:GetMeeting",
+                    "chime:ListMeetings",
+                    "chime:CreateAttendee",
+                    "chime:BatchCreateAttendee",
+                    "chime:DeleteAttendee",
+                    "chime:GetAttendee",
+                    "chime:ListAttendees",
+                    "chime:ListAttendeeTags",
+                    "chime:ListMeetingTags",
+                    "chime:ListTagsForResource",
+                    "chime:TagAttendee",
+                    "chime:TagMeeting",
+                    "chime:TagResource",
+                    "chime:UntagAttendee",
+                    "chime:UntagMeeting",
+                    "chime:UntagResource",
+                ],
+                effect: iam.Effect.ALLOW,
+                resources: ["*"],
+            })
+        );
+        const chimeManagerRole = new iam.Role(this, "ChimeManager", { assumedBy });
+        chimeFullAccessPolicy.attachToRole(chimeManagerRole);
+
+        return chimeManagerRole;
+    }
+
+    /**
+     * @returns a publicly-accessible S3 bucket for content storage
+     */
+    private createContentS3Bucket(): s3.Bucket {
+        const bucket = new s3.Bucket(this, "ContentBucket", {
+            blockPublicAccess: {
+                blockPublicAcls: true,
+                blockPublicPolicy: false,
+                ignorePublicAcls: true,
+                restrictPublicBuckets: false,
+            },
+        });
+
+        bucket.addCorsRule({
+            allowedMethods: [HttpMethods.GET, HttpMethods.PUT, HttpMethods.POST],
+            allowedOrigins: ["*"],
+            exposedHeaders: ["ETag"],
+            maxAge: 3000,
+            allowedHeaders: ["Authorization", "x-amz-date", "x-amz-content-sha256", "content-type"],
+        });
+        bucket.addCorsRule({
+            allowedHeaders: [],
+            allowedMethods: [HttpMethods.GET],
+            allowedOrigins: ["*"],
+            exposedHeaders: [],
+            maxAge: 3000,
+        });
+
+        return bucket;
+    }
+
+    private createCloudFormationNotificationTopic(): sns.Topic {
+        const cloudFormationNotificationsTopic = new sns.Topic(this, "CloudFormationNotifications");
+        cloudFormationNotificationsTopic.grantPublish({
+            grantPrincipal: new iam.ServicePrincipal("cloudformation.amazonaws.com"),
+        });
+        return cloudFormationNotificationsTopic;
+    }
+
+    private createSubscriptionPolicy(
+        id: string,
+        principals: iam.IPrincipal[],
+        topics: sns.Topic[]
+    ): iam.IManagedPolicy {
+        return new iam.ManagedPolicy(this, `SNSAllowSubscription${id}Policy`, {
+            statements: [
+                new iam.PolicyStatement({
+                    actions: ["SNS:Subscribe"],
+                    effect: iam.Effect.ALLOW,
+                    principals,
+                    resources: topics.map((topic) => topic.topicArn),
+                }),
+            ],
+        });
     }
 }
