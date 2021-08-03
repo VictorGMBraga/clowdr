@@ -1,8 +1,7 @@
 import { Bunyan, RootLogger } from "@eropple/nestjs-bunyan";
-import { DynamicModule, FactoryProvider, Global, Module, ModuleMetadata } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import assert from "assert";
+import { DynamicModule, FactoryProvider, Global, Module, ModuleMetadata, OnModuleInit } from "@nestjs/common";
 import { AWS_MODULE_OPTIONS } from "../constants";
+import { AwsConfigService } from "./aws-config.service";
 import { AwsService } from "./aws.service";
 import { CloudFormationService } from "./cloud-formation/cloud-formation.service";
 import { MediaLiveService } from "./medialive/medialive.service";
@@ -13,17 +12,16 @@ export type AwsModuleOptions = {
         accessKeyId: string;
         secretAccessKey: string;
     };
-    prefix: string;
     region: string;
-    mediaLiveServiceRoleArn: string;
+    cloudFormationStackArn?: string;
 };
 
 @Global()
 @Module({
-    providers: [AwsService, CloudFormationService, MediaLiveService, SnsService],
-    exports: [AwsService, CloudFormationService, MediaLiveService, SnsService],
+    providers: [AwsService, AwsConfigService, CloudFormationService, MediaLiveService, SnsService],
+    exports: [AwsService, AwsConfigService, CloudFormationService, MediaLiveService, SnsService],
 })
-export class AwsModule {
+export class AwsModule implements OnModuleInit {
     static forRoot(config: AwsModuleOptions): DynamicModule {
         return {
             module: AwsModule,
@@ -60,21 +58,25 @@ export class AwsModule {
 
     private readonly logger: Bunyan;
 
-    constructor(private snsService: SnsService, @RootLogger() logger: Bunyan, private configService: ConfigService) {
+    constructor(
+        private snsService: SnsService,
+        @RootLogger() logger: Bunyan,
+        private awsConfigService: AwsConfigService
+    ) {
         this.logger = logger.child({ component: this.constructor.name });
     }
 
     async onModuleInit(): Promise<void> {
         this.logger.info("Subscribing to CloudFormation SNS notifications");
-        const cloudFormationNotificationsTopicArn = this.configService.get<string>(
+        const cloudFormationNotificationsTopicArn = this.awsConfigService.getAwsConfigValue(
             "AWS_CLOUDFORMATION_NOTIFICATIONS_TOPIC_ARN"
         );
-        assert(cloudFormationNotificationsTopicArn, "Missing AWS_CLOUDFORMATION_NOTIFICATIONS_TOPIC_ARN");
         await this.snsService.subscribeToTopic(cloudFormationNotificationsTopicArn, "/aws/cloudformation/notify");
 
         this.logger.info("Subscribing to MediaLive SNS notifications");
-        const mediaLiveNotificationsTopicArn = this.configService.get<string>("AWS_MEDIALIVE_NOTIFICATIONS_TOPIC_ARN");
-        assert(mediaLiveNotificationsTopicArn, "Missing AWS_MEDIALIVE_NOTIFICATIONS_TOPIC_ARN");
+        const mediaLiveNotificationsTopicArn = this.awsConfigService.getAwsConfigValue(
+            "AWS_MEDIALIVE_NOTIFICATIONS_TOPIC_ARN"
+        );
         await this.snsService.subscribeToTopic(mediaLiveNotificationsTopicArn, "/aws/medialive/notify");
     }
 }

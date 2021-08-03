@@ -13,13 +13,13 @@ import {
 } from "@aws-sdk/client-medialive";
 import { Credentials as NewSdkCredentials } from "@aws-sdk/types";
 import { Bunyan, RootLogger } from "@eropple/nestjs-bunyan/dist";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { DescribeScheduleRequest } from "aws-sdk/clients/medialive";
 import { AWS_MODULE_OPTIONS } from "../../constants";
 import { AwsModuleOptions } from "../aws.module";
 
 @Injectable()
-export class MediaLiveService {
+export class MediaLiveService implements OnModuleInit {
     private readonly logger: Bunyan;
 
     private readonly credentials: NewSdkCredentials;

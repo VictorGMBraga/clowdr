@@ -44,14 +44,14 @@ import { VonageModule, VonageOptions } from "./vonage/vonage.module";
                 assert(secretAccessKey, "Missing AWS_SECRET_ACCESS_KEY");
                 const region = configService.get<string>("AWS_REGION");
                 assert(region, "Missing AWS_REGION");
+                const maybeCloudFormationStackArn = configService.get<string>("AWS_CLOUDFORMATION_STACK_ARN");
 
                 const config: AwsModuleOptions = {
                     credentials: {
                         accessKeyId,
                         secretAccessKey,
                     },
-                    mediaLiveServiceRoleArn: "",
-                    prefix: "",
+                    cloudFormationStackArn: maybeCloudFormationStackArn,
                     region,
                 };
                 return config;
