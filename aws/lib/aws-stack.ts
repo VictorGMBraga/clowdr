@@ -477,6 +477,9 @@ export class AwsStack extends cdk.Stack {
         identity.addManagedPolicy(policy);
     }
 
+    /**
+     * Create a rule that listens to MediaConvert nofications and publishes them to the topic.
+     */
     private addMediaConvertEventRule(mediaConvertNotificationTopic: sns.ITopic, stackPrefix: string): void {
         mediaConvertNotificationTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -499,6 +502,9 @@ export class AwsStack extends cdk.Stack {
         rule.addTarget(new targets.CloudWatchLogGroup(logGroup));
     }
 
+    /**
+     * Create a rule that listens to MediaLive nofications and publishes them to the topic.
+     */
     private addMediaLiveEventRule(mediaLiveNotificationTopic: sns.ITopic): void {
         mediaLiveNotificationTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -516,6 +522,9 @@ export class AwsStack extends cdk.Stack {
         rule.addTarget(new targets.CloudWatchLogGroup(logGroup));
     }
 
+    /**
+     * Create a rule that listens to MediaPackage nofications and publishes them to the topic.
+     */
     private addMediaPackageEventRule(mediaPackageHarvestNotificationTopic: sns.ITopic): void {
         mediaPackageHarvestNotificationTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -531,6 +540,9 @@ export class AwsStack extends cdk.Stack {
         rule.addTarget(new targets.SnsTopic(mediaPackageHarvestNotificationTopic));
     }
 
+    /**
+     * Create a rule that listens to Amazon Transcribe nofications and publishes them to the topic.
+     */
     private addTranscribeEventRule(transcribeNotificationTopic: sns.ITopic): void {
         transcribeNotificationTopic.grantPublish({
             grantPrincipal: new iam.ServicePrincipal("events.amazonaws.com"),
@@ -548,6 +560,11 @@ export class AwsStack extends cdk.Stack {
         rule.addTarget(new targets.CloudWatchLogGroup(transcribeLogGroup));
     }
 
+    /**
+     * Create an output from the CloudFormation stack.
+     * @param id the scope-unique name of the output
+     * @param value the value of the output
+     */
     private createOutput(id: string, value: string): void {
         new cdk.CfnOutput(this, id, {
             value,
