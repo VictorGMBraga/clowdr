@@ -46,7 +46,7 @@ export default function RestrictedDashboardButton({
                 {...rest}
             >
                 <Heading as="h2" fontSize="2xl" marginBottom="0.5rem">
-                    <FAIcon iconStyle="s" icon={icon} />
+                    <FAIcon iconStyle="s" icon={icon} mb={2} />
                     <br />
                     {name}
                 </Heading>

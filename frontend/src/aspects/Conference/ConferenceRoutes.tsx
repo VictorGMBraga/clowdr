@@ -25,7 +25,8 @@ import ChecklistPage from "./Manage/Checklist/ChecklistPage";
 import ManageContent from "./Manage/Content/ManageContent";
 import ManageEmail from "./Manage/Email/ManageEmail";
 import ManageExport from "./Manage/Export/ManageExport";
-import ManageImport from "./Manage/Import/v1/ManageImport";
+import ManageImportV1 from "./Manage/Import/v1/ManageImport";
+import ManageImportV2 from "./Manage/Import/v2/ManageImport";
 import ManageDetails from "./Manage/ManageDetails";
 import ManageGroups from "./Manage/ManageGroups";
 import ManageProgramPeople from "./Manage/ManageProgramPeople";
@@ -105,8 +106,11 @@ export default function ConferenceRoutes(): JSX.Element {
             <Route path={`${path}/manage/content`}>
                 <ManageContent />
             </Route>
+            <Route path={`${path}/manage/import/v2`}>
+                <ManageImportV2 />
+            </Route>
             <Route path={`${path}/manage/import`}>
-                <ManageImport />
+                <ManageImportV1 />
             </Route>
             <Route path={`${path}/manage/rooms`}>
                 <ManageRooms />
