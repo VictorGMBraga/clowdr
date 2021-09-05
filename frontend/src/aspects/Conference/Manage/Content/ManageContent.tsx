@@ -18,6 +18,13 @@ import {
     Tooltip,
     useDisclosure,
 } from "@chakra-ui/react";
+import {
+    ElementBaseType,
+    ElementBlob,
+    ElementDataBlob,
+    ElementVersionData,
+} from "@clowdr-app/shared-types/build/content";
+import type { LayoutDataBlob } from "@clowdr-app/shared-types/build/content/layoutData";
 import Papa from "papaparse";
 import * as R from "ramda";
 import React, { LegacyRef, useCallback, useMemo, useRef, useState } from "react";
@@ -919,8 +926,19 @@ export default function ManageContentV2(): JSX.Element {
                                     "Short Title": item.shortTitle ?? "",
                                     Type: item.typeName,
                                     "Tag Ids": item.itemTags.map((itemTag) => itemTag.tagId),
-                                    Exhibitions: item.itemExhibitions.map(
+                                    "Tag Names": item.itemTags.map(
+                                        (itemTag) =>
+                                            allTags?.collection_Tag.find((tag) => tag.id === itemTag.tagId)?.name ??
+                                            "!!Unknown!!"
+                                    ),
+                                    "Exhibition Ids": item.itemExhibitions.map(
                                         (itemExh) => `${itemExh.priority ?? "N"}: ${itemExh.exhibitionId}`
+                                    ),
+                                    "Exhibition Names": item.itemExhibitions.map(
+                                        (itemExh) =>
+                                            allExhibitions?.collection_Exhibition.find(
+                                                (exh) => exh.id === itemExh.exhibitionId
+                                            )?.name ?? "!!Unknown!!"
                                     ),
                                     "Discussion Room Ids": item.rooms.map((room) => room.id),
                                     "Chat Id": item.chatId ?? "",
@@ -930,7 +948,9 @@ export default function ManageContentV2(): JSX.Element {
                                             `${itemPerson.priority ?? "N"}: ${itemPerson.person.id} (${
                                                 itemPerson.roleName
                                             }) [${itemPerson.person.name} (${
-                                                itemPerson.person.affiliation ?? "No affiliation"
+                                                itemPerson.person.affiliation?.length
+                                                    ? itemPerson.person.affiliation
+                                                    : "No affiliation"
                                             }) <${itemPerson.person.email ?? "No email"}>]`
                                     ),
                                 };
@@ -941,13 +961,47 @@ export default function ManageContentV2(): JSX.Element {
                                     result[`${baseName}: Id`] = element.id;
                                     result[`${baseName}: Name`] = element.name;
                                     result[`${baseName}: Type`] = element.typeName;
-                                    result[`${baseName}: Data`] =
-                                        element.data && element.data instanceof Array
-                                            ? JSON.stringify(element.data[element.data.length - 1])
-                                            : null;
-                                    result[`${baseName}: Layout`] = element.layoutData
-                                        ? JSON.stringify(element.layoutData)
-                                        : null;
+                                    const elData = element.data as ElementDataBlob;
+                                    if (elData.length > 0) {
+                                        const latestVersion: ElementVersionData = elData[elData.length - 1];
+                                        const latestData: ElementBlob = latestVersion.data;
+                                        result[`${baseName}: Latest Version: Created At`] = new Date(
+                                            latestVersion.createdAt
+                                        ).toISOString();
+                                        result[`${baseName}: Latest Version: Created By`] = latestVersion.createdBy;
+
+                                        switch (latestData.baseType) {
+                                            case ElementBaseType.Component:
+                                                result[`${baseName}: Latest Version: Data`] = "";
+                                                break;
+                                            case ElementBaseType.File:
+                                                result[`${baseName}: Latest Version: Data`] = latestData.s3Url;
+                                                break;
+                                            case ElementBaseType.Link:
+                                                result[`${baseName}: Latest Version: Text`] = latestData.text;
+                                                result[`${baseName}: Latest Version: URL`] = latestData.url;
+                                                break;
+                                            case ElementBaseType.Text:
+                                                result[`${baseName}: Latest Version: Text`] = latestData.text;
+                                                break;
+                                            case ElementBaseType.URL:
+                                                result[`${baseName}: Latest Version: URL`] = latestData.url;
+                                                break;
+                                            case ElementBaseType.Video:
+                                                result[`${baseName}: Latest Version: Video: S3 URL`] = latestData.s3Url;
+                                                result[`${baseName}: Latest Version: Video: Subtitles`] =
+                                                    JSON.stringify(latestData.subtitles);
+                                                result[`${baseName}: Latest Version: Video: Full Data`] =
+                                                    JSON.stringify(latestData);
+                                                break;
+                                        }
+                                    }
+                                    if (element.layoutData) {
+                                        const layoutData: LayoutDataBlob = element.layoutData;
+                                        result[`${baseName}: Layout: Is Hidden`] = layoutData.hidden;
+                                        result[`${baseName}: Layout: Priority`] = layoutData.priority;
+                                        result[`${baseName}: Layout: Is Wide`] = layoutData.wide;
+                                    }
                                     result[`${baseName}: Uploads Remaining`] = element.uploadsRemaining ?? "Unlimited";
                                     result[`${baseName}: Hidden`] = element.isHidden ? "Yes" : "No";
                                     result[`${baseName}: Updated At`] = element.updatedAt;
