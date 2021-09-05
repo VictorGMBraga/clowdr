@@ -15,7 +15,7 @@ import type {
     IntermediaryScheduleData,
 } from "@clowdr-app/shared-types/build/import/intermediary";
 import React, { useEffect, useState } from "react";
-import type { ParsedData } from "../../../../Files/useCSVJSONXMLParser";
+import type { ParsedData } from "../../../../../Files/useCSVJSONXMLParser";
 
 export default function ConfigPanel<T = IntermediaryContentData | IntermediaryScheduleData>({
     data,

@@ -4,13 +4,13 @@ import {
     JSONataToIntermediaryRegistrant,
 } from "@clowdr-app/shared-types/build/import/intermediary";
 import React, { useMemo, useState } from "react";
-import { Permissions_Permission_Enum } from "../../../../../generated/graphql";
-import { LinkButton } from "../../../../Chakra/LinkButton";
-import PageNotFound from "../../../../Errors/PageNotFound";
-import type { ParsedData } from "../../../../Files/useCSVJSONXMLParser";
-import { useTitle } from "../../../../Utils/useTitle";
-import RequireAtLeastOnePermissionWrapper from "../../../RequireAtLeastOnePermissionWrapper";
-import { useConference } from "../../../useConference";
+import { Permissions_Permission_Enum } from "../../../../../../generated/graphql";
+import { LinkButton } from "../../../../../Chakra/LinkButton";
+import PageNotFound from "../../../../../Errors/PageNotFound";
+import type { ParsedData } from "../../../../../Files/useCSVJSONXMLParser";
+import { useTitle } from "../../../../../Utils/useTitle";
+import RequireAtLeastOnePermissionWrapper from "../../../../RequireAtLeastOnePermissionWrapper";
+import { useConference } from "../../../../useConference";
 import ConfigPanel from "../Shared/ConfigPanel";
 import DataPanel from "../Shared/DataPanel";
 import ReviewPanel from "../Shared/ReviewPanel";
@@ -60,9 +60,10 @@ export default function ImportRegistrantsPage(): JSX.Element {
             ),
         [data]
     );
-    const reviewPanel = useMemo(() => <ReviewPanel data={intermediaryData} defaultQuery={defaultReviewQuery} />, [
-        intermediaryData,
-    ]);
+    const reviewPanel = useMemo(
+        () => <ReviewPanel data={intermediaryData} defaultQuery={defaultReviewQuery} />,
+        [intermediaryData]
+    );
     const importPanel = useMemo(() => <ImportPanel data={intermediaryData} />, [intermediaryData]);
 
     return (

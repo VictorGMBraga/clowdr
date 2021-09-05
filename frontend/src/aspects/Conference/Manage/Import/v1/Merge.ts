@@ -1,7 +1,7 @@
 import type { IntermediaryOriginatingDataDescriptor } from "@clowdr-app/shared-types/build/import/intermediary";
 import { levenshteinEditDistance } from "levenshtein-edit-distance";
 import { v4 as uuidv4 } from "uuid";
-import type { OriginatingDataDescriptor } from "../Shared/Types";
+import type { OriginatingDataDescriptor } from "../../Shared/Types";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function Set_toJSON(key: string, value: any): any {

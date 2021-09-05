@@ -18,8 +18,8 @@ import type {
     ItemPersonDescriptor,
     ProgramPersonDescriptor,
     UploaderDescriptor,
-} from "../../Content/Types";
-import type { OriginatingDataDescriptor, TagDescriptor } from "../../Shared/Types";
+} from "../../../Content/Types";
+import type { OriginatingDataDescriptor, TagDescriptor } from "../../../Shared/Types";
 import {
     ChangeSummary,
     convertOriginatingData,

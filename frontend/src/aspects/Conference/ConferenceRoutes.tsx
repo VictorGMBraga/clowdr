@@ -25,7 +25,7 @@ import ChecklistPage from "./Manage/Checklist/ChecklistPage";
 import ManageContent from "./Manage/Content/ManageContent";
 import ManageEmail from "./Manage/Email/ManageEmail";
 import ManageExport from "./Manage/Export/ManageExport";
-import ManageImport from "./Manage/Import/ManageImport";
+import ManageImport from "./Manage/Import/v1/ManageImport";
 import ManageDetails from "./Manage/ManageDetails";
 import ManageGroups from "./Manage/ManageGroups";
 import ManageProgramPeople from "./Manage/ManageProgramPeople";

@@ -27,10 +27,10 @@ import {
     useImportRegistrantsMutation,
     useSelectAllGroupsQuery,
     useSelectAllRegistrantsQuery,
-} from "../../../../../generated/graphql";
-import { LinkButton } from "../../../../Chakra/LinkButton";
-import useQueryErrorToast from "../../../../GQL/useQueryErrorToast";
-import { useConference } from "../../../useConference";
+} from "../../../../../../generated/graphql";
+import { LinkButton } from "../../../../../Chakra/LinkButton";
+import useQueryErrorToast from "../../../../../GQL/useQueryErrorToast";
+import { useConference } from "../../../../useConference";
 
 gql`
     mutation ImportRegistrants(

@@ -1,12 +1,12 @@
 import { Flex, Heading } from "@chakra-ui/react";
 import React from "react";
 import { Route, Switch, useRouteMatch } from "react-router-dom";
-import { Permissions_Permission_Enum } from "../../../../generated/graphql";
-import PageNotFound from "../../../Errors/PageNotFound";
-import { useTitle } from "../../../Utils/useTitle";
-import RequireAtLeastOnePermissionWrapper from "../../RequireAtLeastOnePermissionWrapper";
-import { useConference } from "../../useConference";
-import RestrictedDashboardButton from "../RestrictedDashboardButton";
+import { Permissions_Permission_Enum } from "../../../../../generated/graphql";
+import PageNotFound from "../../../../Errors/PageNotFound";
+import { useTitle } from "../../../../Utils/useTitle";
+import RequireAtLeastOnePermissionWrapper from "../../../RequireAtLeastOnePermissionWrapper";
+import { useConference } from "../../../useConference";
+import RestrictedDashboardButton from "../../RestrictedDashboardButton";
 import ImportContentPage from "./Content/ImportContentPage";
 import ImportRegistrantsPage from "./Registrants/ImportRegistrantsPage";
 import ImportSchedulePage from "./Schedule/ImportSchedulePage";
