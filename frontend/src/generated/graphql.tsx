@@ -36400,6 +36400,93 @@ export type ImportRegistrantsMutationVariables = Exact<{
 
 export type ImportRegistrantsMutation = { readonly __typename?: 'mutation_root', readonly insert_registrant_Registrant?: Maybe<{ readonly __typename?: 'registrant_Registrant_mutation_response', readonly affected_rows: number }>, readonly insert_registrant_Invitation?: Maybe<{ readonly __typename?: 'registrant_Invitation_mutation_response', readonly affected_rows: number }>, readonly insert_permissions_GroupRegistrant?: Maybe<{ readonly __typename?: 'permissions_GroupRegistrant_mutation_response', readonly affected_rows: number }> };
 
+export type ImportContent_ItemTagFragment = { readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any };
+
+export type ImportContent_ItemExhibitionFragment = { readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly exhibitionId: any, readonly priority?: Maybe<number>, readonly layout?: Maybe<any> };
+
+export type ImportContent_RoomFragment = { readonly __typename?: 'room_Room', readonly id: any, readonly name: string };
+
+export type ImportContent_ElementFragment = { readonly __typename?: 'content_Element', readonly id: any, readonly itemId: any, readonly name: string, readonly typeName: Content_ElementType_Enum, readonly data: any, readonly layoutData?: Maybe<any>, readonly uploadsRemaining?: Maybe<number>, readonly isHidden: boolean, readonly updatedAt: any, readonly conferenceId: any, readonly uploaders: ReadonlyArray<{ readonly __typename?: 'content_Uploader', readonly id: any, readonly email: string, readonly name: string, readonly emailsSentCount: number }> };
+
+export type ImportContent_ProgramPersonFragment = { readonly __typename?: 'collection_ProgramPerson', readonly id: any, readonly name: string, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string>, readonly registrantId?: Maybe<any> };
+
+export type ImportContent_ItemProgramPersonFragment = { readonly __typename?: 'content_ItemProgramPerson', readonly id: any, readonly priority?: Maybe<number>, readonly roleName: string };
+
+export type ImportContent_UploaderFragment = { readonly __typename?: 'content_Uploader', readonly id: any, readonly email: string, readonly name: string, readonly emailsSentCount: number };
+
+export type ImportContent_ItemFragment = { readonly __typename?: 'content_Item', readonly id: any, readonly conferenceId: any, readonly title: string, readonly shortTitle?: Maybe<string>, readonly typeName: Content_ItemType_Enum, readonly chatId?: Maybe<any>, readonly originatingData?: Maybe<{ readonly __typename?: 'conference_OriginatingData', readonly id: any, readonly sourceId: string }>, readonly itemTags: ReadonlyArray<{ readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any }>, readonly itemExhibitions: ReadonlyArray<{ readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly exhibitionId: any, readonly priority?: Maybe<number>, readonly layout?: Maybe<any> }>, readonly rooms: ReadonlyArray<{ readonly __typename?: 'room_Room', readonly id: any, readonly name: string }>, readonly itemPeople: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly id: any, readonly priority?: Maybe<number>, readonly roleName: string }>, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly itemId: any, readonly name: string, readonly typeName: Content_ElementType_Enum, readonly data: any, readonly layoutData?: Maybe<any>, readonly uploadsRemaining?: Maybe<number>, readonly isHidden: boolean, readonly updatedAt: any, readonly conferenceId: any, readonly uploaders: ReadonlyArray<{ readonly __typename?: 'content_Uploader', readonly id: any, readonly email: string, readonly name: string, readonly emailsSentCount: number }> }> };
+
+export type ImportContent_TagFragment = { readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string, readonly colour: string, readonly priority: number };
+
+export type ImportContent_ExhibitionFragment = { readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string, readonly colour: string, readonly priority: number, readonly isHidden: boolean };
+
+export type ImportContent_SelectAllQueryVariables = Exact<{
+  conferenceId: Scalars['uuid'];
+}>;
+
+
+export type ImportContent_SelectAllQuery = { readonly __typename?: 'query_root', readonly content_Item: ReadonlyArray<{ readonly __typename?: 'content_Item', readonly id: any, readonly conferenceId: any, readonly title: string, readonly shortTitle?: Maybe<string>, readonly typeName: Content_ItemType_Enum, readonly chatId?: Maybe<any>, readonly originatingData?: Maybe<{ readonly __typename?: 'conference_OriginatingData', readonly id: any, readonly sourceId: string }>, readonly itemTags: ReadonlyArray<{ readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any }>, readonly itemExhibitions: ReadonlyArray<{ readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly exhibitionId: any, readonly priority?: Maybe<number>, readonly layout?: Maybe<any> }>, readonly rooms: ReadonlyArray<{ readonly __typename?: 'room_Room', readonly id: any, readonly name: string }>, readonly itemPeople: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly id: any, readonly priority?: Maybe<number>, readonly roleName: string }>, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly itemId: any, readonly name: string, readonly typeName: Content_ElementType_Enum, readonly data: any, readonly layoutData?: Maybe<any>, readonly uploadsRemaining?: Maybe<number>, readonly isHidden: boolean, readonly updatedAt: any, readonly conferenceId: any, readonly uploaders: ReadonlyArray<{ readonly __typename?: 'content_Uploader', readonly id: any, readonly email: string, readonly name: string, readonly emailsSentCount: number }> }> }>, readonly collection_ProgramPerson: ReadonlyArray<{ readonly __typename?: 'collection_ProgramPerson', readonly id: any, readonly name: string, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string>, readonly registrantId?: Maybe<any> }>, readonly collection_Tag: ReadonlyArray<{ readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string, readonly colour: string, readonly priority: number }>, readonly collection_Exhibition: ReadonlyArray<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string, readonly colour: string, readonly priority: number, readonly isHidden: boolean }> };
+
+export type ImportContent_InsertItemsMutationVariables = Exact<{
+  items: ReadonlyArray<Content_Item_Insert_Input> | Content_Item_Insert_Input;
+}>;
+
+
+export type ImportContent_InsertItemsMutation = { readonly __typename?: 'mutation_root', readonly insert_content_Item?: Maybe<{ readonly __typename?: 'content_Item_mutation_response', readonly affected_rows: number }> };
+
+export type ImportContent_InsertPeopleMutationVariables = Exact<{
+  people: ReadonlyArray<Collection_ProgramPerson_Insert_Input> | Collection_ProgramPerson_Insert_Input;
+}>;
+
+
+export type ImportContent_InsertPeopleMutation = { readonly __typename?: 'mutation_root', readonly insert_collection_ProgramPerson?: Maybe<{ readonly __typename?: 'collection_ProgramPerson_mutation_response', readonly affected_rows: number }> };
+
+export type ImportContent_InsertTagsMutationVariables = Exact<{
+  tags: ReadonlyArray<Collection_Tag_Insert_Input> | Collection_Tag_Insert_Input;
+}>;
+
+
+export type ImportContent_InsertTagsMutation = { readonly __typename?: 'mutation_root', readonly insert_collection_Tag?: Maybe<{ readonly __typename?: 'collection_Tag_mutation_response', readonly affected_rows: number }> };
+
+export type ImportContent_InsertExhibitionsMutationVariables = Exact<{
+  exhibitions: ReadonlyArray<Collection_Exhibition_Insert_Input> | Collection_Exhibition_Insert_Input;
+}>;
+
+
+export type ImportContent_InsertExhibitionsMutation = { readonly __typename?: 'mutation_root', readonly insert_collection_Exhibition?: Maybe<{ readonly __typename?: 'collection_Exhibition_mutation_response', readonly affected_rows: number }> };
+
+export type ImportContent_UpdateItemMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  item: Content_Item_Set_Input;
+}>;
+
+
+export type ImportContent_UpdateItemMutation = { readonly __typename?: 'mutation_root', readonly update_content_Item_by_pk?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any }> };
+
+export type ImportContent_UpdatePersonMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  person: Collection_ProgramPerson_Set_Input;
+}>;
+
+
+export type ImportContent_UpdatePersonMutation = { readonly __typename?: 'mutation_root', readonly update_collection_ProgramPerson_by_pk?: Maybe<{ readonly __typename?: 'collection_ProgramPerson', readonly id: any }> };
+
+export type ImportContent_UpdateTagMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  tag: Collection_Tag_Set_Input;
+}>;
+
+
+export type ImportContent_UpdateTagMutation = { readonly __typename?: 'mutation_root', readonly update_collection_Tag_by_pk?: Maybe<{ readonly __typename?: 'collection_Tag', readonly id: any }> };
+
+export type ImportContent_UpdateExhibitionMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  exhibition: Collection_Exhibition_Set_Input;
+}>;
+
+
+export type ImportContent_UpdateExhibitionMutation = { readonly __typename?: 'mutation_root', readonly update_collection_Exhibition_by_pk?: Maybe<{ readonly __typename?: 'collection_Exhibition', readonly id: any }> };
+
 export type UpdateConferenceMutationVariables = Exact<{
   id: Scalars['uuid'];
   name?: Maybe<Scalars['String']>;
@@ -38637,6 +38724,117 @@ export const UploadYouTubeVideos_YouTubeUploadFragmentDoc = gql`
       title
     }
   }
+}
+    `;
+export const ImportContent_ProgramPersonFragmentDoc = gql`
+    fragment ImportContent_ProgramPerson on collection_ProgramPerson {
+  id
+  name
+  affiliation
+  email
+  registrantId
+}
+    `;
+export const ImportContent_ItemTagFragmentDoc = gql`
+    fragment ImportContent_ItemTag on content_ItemTag {
+  id
+  tagId
+}
+    `;
+export const ImportContent_ItemExhibitionFragmentDoc = gql`
+    fragment ImportContent_ItemExhibition on content_ItemExhibition {
+  id
+  exhibitionId
+  priority
+  layout
+}
+    `;
+export const ImportContent_RoomFragmentDoc = gql`
+    fragment ImportContent_Room on room_Room {
+  id
+  name
+}
+    `;
+export const ImportContent_ItemProgramPersonFragmentDoc = gql`
+    fragment ImportContent_ItemProgramPerson on content_ItemProgramPerson {
+  id
+  priority
+  roleName
+}
+    `;
+export const ImportContent_UploaderFragmentDoc = gql`
+    fragment ImportContent_Uploader on content_Uploader {
+  id
+  email
+  name
+  emailsSentCount
+}
+    `;
+export const ImportContent_ElementFragmentDoc = gql`
+    fragment ImportContent_Element on content_Element {
+  id
+  itemId
+  name
+  typeName
+  data
+  layoutData
+  uploadsRemaining
+  isHidden
+  updatedAt
+  conferenceId
+  uploaders {
+    ...ImportContent_Uploader
+  }
+}
+    ${ImportContent_UploaderFragmentDoc}`;
+export const ImportContent_ItemFragmentDoc = gql`
+    fragment ImportContent_Item on content_Item {
+  id
+  conferenceId
+  title
+  shortTitle
+  typeName
+  originatingData {
+    id
+    sourceId
+  }
+  itemTags {
+    ...ImportContent_ItemTag
+  }
+  itemExhibitions {
+    ...ImportContent_ItemExhibition
+  }
+  rooms {
+    ...ImportContent_Room
+  }
+  chatId
+  itemPeople {
+    ...ImportContent_ItemProgramPerson
+  }
+  elements {
+    ...ImportContent_Element
+  }
+}
+    ${ImportContent_ItemTagFragmentDoc}
+${ImportContent_ItemExhibitionFragmentDoc}
+${ImportContent_RoomFragmentDoc}
+${ImportContent_ItemProgramPersonFragmentDoc}
+${ImportContent_ElementFragmentDoc}`;
+export const ImportContent_TagFragmentDoc = gql`
+    fragment ImportContent_Tag on collection_Tag {
+  id
+  name
+  colour
+  priority
+}
+    `;
+export const ImportContent_ExhibitionFragmentDoc = gql`
+    fragment ImportContent_Exhibition on collection_Exhibition {
+  id
+  name
+  colour
+  priority
+  isHidden
 }
     `;
 export const ManageGroups_GroupFragmentDoc = gql`
@@ -45650,6 +45848,321 @@ export function useImportRegistrantsMutation(baseOptions?: Apollo.MutationHookOp
 export type ImportRegistrantsMutationHookResult = ReturnType<typeof useImportRegistrantsMutation>;
 export type ImportRegistrantsMutationResult = Apollo.MutationResult<ImportRegistrantsMutation>;
 export type ImportRegistrantsMutationOptions = Apollo.BaseMutationOptions<ImportRegistrantsMutation, ImportRegistrantsMutationVariables>;
+export const ImportContent_SelectAllDocument = gql`
+    query ImportContent_SelectAll($conferenceId: uuid!) {
+  content_Item(where: {conferenceId: {_eq: $conferenceId}}) {
+    ...ImportContent_Item
+  }
+  collection_ProgramPerson(where: {conferenceId: {_eq: $conferenceId}}) {
+    ...ImportContent_ProgramPerson
+  }
+  collection_Tag(where: {conferenceId: {_eq: $conferenceId}}) {
+    ...ImportContent_Tag
+  }
+  collection_Exhibition(where: {conferenceId: {_eq: $conferenceId}}) {
+    ...ImportContent_Exhibition
+  }
+}
+    ${ImportContent_ItemFragmentDoc}
+${ImportContent_ProgramPersonFragmentDoc}
+${ImportContent_TagFragmentDoc}
+${ImportContent_ExhibitionFragmentDoc}`;
+
+/**
+ * __useImportContent_SelectAllQuery__
+ *
+ * To run a query within a React component, call `useImportContent_SelectAllQuery` and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_SelectAllQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useImportContent_SelectAllQuery({
+ *   variables: {
+ *      conferenceId: // value for 'conferenceId'
+ *   },
+ * });
+ */
+export function useImportContent_SelectAllQuery(baseOptions: Apollo.QueryHookOptions<ImportContent_SelectAllQuery, ImportContent_SelectAllQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ImportContent_SelectAllQuery, ImportContent_SelectAllQueryVariables>(ImportContent_SelectAllDocument, options);
+      }
+export function useImportContent_SelectAllLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ImportContent_SelectAllQuery, ImportContent_SelectAllQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ImportContent_SelectAllQuery, ImportContent_SelectAllQueryVariables>(ImportContent_SelectAllDocument, options);
+        }
+export type ImportContent_SelectAllQueryHookResult = ReturnType<typeof useImportContent_SelectAllQuery>;
+export type ImportContent_SelectAllLazyQueryHookResult = ReturnType<typeof useImportContent_SelectAllLazyQuery>;
+export type ImportContent_SelectAllQueryResult = Apollo.QueryResult<ImportContent_SelectAllQuery, ImportContent_SelectAllQueryVariables>;
+export const ImportContent_InsertItemsDocument = gql`
+    mutation ImportContent_InsertItems($items: [content_Item_insert_input!]!) {
+  insert_content_Item(objects: $items) {
+    affected_rows
+  }
+}
+    `;
+export type ImportContent_InsertItemsMutationFn = Apollo.MutationFunction<ImportContent_InsertItemsMutation, ImportContent_InsertItemsMutationVariables>;
+
+/**
+ * __useImportContent_InsertItemsMutation__
+ *
+ * To run a mutation, you first call `useImportContent_InsertItemsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_InsertItemsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentInsertItemsMutation, { data, loading, error }] = useImportContent_InsertItemsMutation({
+ *   variables: {
+ *      items: // value for 'items'
+ *   },
+ * });
+ */
+export function useImportContent_InsertItemsMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_InsertItemsMutation, ImportContent_InsertItemsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_InsertItemsMutation, ImportContent_InsertItemsMutationVariables>(ImportContent_InsertItemsDocument, options);
+      }
+export type ImportContent_InsertItemsMutationHookResult = ReturnType<typeof useImportContent_InsertItemsMutation>;
+export type ImportContent_InsertItemsMutationResult = Apollo.MutationResult<ImportContent_InsertItemsMutation>;
+export type ImportContent_InsertItemsMutationOptions = Apollo.BaseMutationOptions<ImportContent_InsertItemsMutation, ImportContent_InsertItemsMutationVariables>;
+export const ImportContent_InsertPeopleDocument = gql`
+    mutation ImportContent_InsertPeople($people: [collection_ProgramPerson_insert_input!]!) {
+  insert_collection_ProgramPerson(objects: $people) {
+    affected_rows
+  }
+}
+    `;
+export type ImportContent_InsertPeopleMutationFn = Apollo.MutationFunction<ImportContent_InsertPeopleMutation, ImportContent_InsertPeopleMutationVariables>;
+
+/**
+ * __useImportContent_InsertPeopleMutation__
+ *
+ * To run a mutation, you first call `useImportContent_InsertPeopleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_InsertPeopleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentInsertPeopleMutation, { data, loading, error }] = useImportContent_InsertPeopleMutation({
+ *   variables: {
+ *      people: // value for 'people'
+ *   },
+ * });
+ */
+export function useImportContent_InsertPeopleMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_InsertPeopleMutation, ImportContent_InsertPeopleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_InsertPeopleMutation, ImportContent_InsertPeopleMutationVariables>(ImportContent_InsertPeopleDocument, options);
+      }
+export type ImportContent_InsertPeopleMutationHookResult = ReturnType<typeof useImportContent_InsertPeopleMutation>;
+export type ImportContent_InsertPeopleMutationResult = Apollo.MutationResult<ImportContent_InsertPeopleMutation>;
+export type ImportContent_InsertPeopleMutationOptions = Apollo.BaseMutationOptions<ImportContent_InsertPeopleMutation, ImportContent_InsertPeopleMutationVariables>;
+export const ImportContent_InsertTagsDocument = gql`
+    mutation ImportContent_InsertTags($tags: [collection_Tag_insert_input!]!) {
+  insert_collection_Tag(objects: $tags) {
+    affected_rows
+  }
+}
+    `;
+export type ImportContent_InsertTagsMutationFn = Apollo.MutationFunction<ImportContent_InsertTagsMutation, ImportContent_InsertTagsMutationVariables>;
+
+/**
+ * __useImportContent_InsertTagsMutation__
+ *
+ * To run a mutation, you first call `useImportContent_InsertTagsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_InsertTagsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentInsertTagsMutation, { data, loading, error }] = useImportContent_InsertTagsMutation({
+ *   variables: {
+ *      tags: // value for 'tags'
+ *   },
+ * });
+ */
+export function useImportContent_InsertTagsMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_InsertTagsMutation, ImportContent_InsertTagsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_InsertTagsMutation, ImportContent_InsertTagsMutationVariables>(ImportContent_InsertTagsDocument, options);
+      }
+export type ImportContent_InsertTagsMutationHookResult = ReturnType<typeof useImportContent_InsertTagsMutation>;
+export type ImportContent_InsertTagsMutationResult = Apollo.MutationResult<ImportContent_InsertTagsMutation>;
+export type ImportContent_InsertTagsMutationOptions = Apollo.BaseMutationOptions<ImportContent_InsertTagsMutation, ImportContent_InsertTagsMutationVariables>;
+export const ImportContent_InsertExhibitionsDocument = gql`
+    mutation ImportContent_InsertExhibitions($exhibitions: [collection_Exhibition_insert_input!]!) {
+  insert_collection_Exhibition(objects: $exhibitions) {
+    affected_rows
+  }
+}
+    `;
+export type ImportContent_InsertExhibitionsMutationFn = Apollo.MutationFunction<ImportContent_InsertExhibitionsMutation, ImportContent_InsertExhibitionsMutationVariables>;
+
+/**
+ * __useImportContent_InsertExhibitionsMutation__
+ *
+ * To run a mutation, you first call `useImportContent_InsertExhibitionsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_InsertExhibitionsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentInsertExhibitionsMutation, { data, loading, error }] = useImportContent_InsertExhibitionsMutation({
+ *   variables: {
+ *      exhibitions: // value for 'exhibitions'
+ *   },
+ * });
+ */
+export function useImportContent_InsertExhibitionsMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_InsertExhibitionsMutation, ImportContent_InsertExhibitionsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_InsertExhibitionsMutation, ImportContent_InsertExhibitionsMutationVariables>(ImportContent_InsertExhibitionsDocument, options);
+      }
+export type ImportContent_InsertExhibitionsMutationHookResult = ReturnType<typeof useImportContent_InsertExhibitionsMutation>;
+export type ImportContent_InsertExhibitionsMutationResult = Apollo.MutationResult<ImportContent_InsertExhibitionsMutation>;
+export type ImportContent_InsertExhibitionsMutationOptions = Apollo.BaseMutationOptions<ImportContent_InsertExhibitionsMutation, ImportContent_InsertExhibitionsMutationVariables>;
+export const ImportContent_UpdateItemDocument = gql`
+    mutation ImportContent_UpdateItem($id: uuid!, $item: content_Item_set_input!) {
+  update_content_Item_by_pk(pk_columns: {id: $id}, _set: $item) {
+    id
+  }
+}
+    `;
+export type ImportContent_UpdateItemMutationFn = Apollo.MutationFunction<ImportContent_UpdateItemMutation, ImportContent_UpdateItemMutationVariables>;
+
+/**
+ * __useImportContent_UpdateItemMutation__
+ *
+ * To run a mutation, you first call `useImportContent_UpdateItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_UpdateItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentUpdateItemMutation, { data, loading, error }] = useImportContent_UpdateItemMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      item: // value for 'item'
+ *   },
+ * });
+ */
+export function useImportContent_UpdateItemMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_UpdateItemMutation, ImportContent_UpdateItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_UpdateItemMutation, ImportContent_UpdateItemMutationVariables>(ImportContent_UpdateItemDocument, options);
+      }
+export type ImportContent_UpdateItemMutationHookResult = ReturnType<typeof useImportContent_UpdateItemMutation>;
+export type ImportContent_UpdateItemMutationResult = Apollo.MutationResult<ImportContent_UpdateItemMutation>;
+export type ImportContent_UpdateItemMutationOptions = Apollo.BaseMutationOptions<ImportContent_UpdateItemMutation, ImportContent_UpdateItemMutationVariables>;
+export const ImportContent_UpdatePersonDocument = gql`
+    mutation ImportContent_UpdatePerson($id: uuid!, $person: collection_ProgramPerson_set_input!) {
+  update_collection_ProgramPerson_by_pk(pk_columns: {id: $id}, _set: $person) {
+    id
+  }
+}
+    `;
+export type ImportContent_UpdatePersonMutationFn = Apollo.MutationFunction<ImportContent_UpdatePersonMutation, ImportContent_UpdatePersonMutationVariables>;
+
+/**
+ * __useImportContent_UpdatePersonMutation__
+ *
+ * To run a mutation, you first call `useImportContent_UpdatePersonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_UpdatePersonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentUpdatePersonMutation, { data, loading, error }] = useImportContent_UpdatePersonMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      person: // value for 'person'
+ *   },
+ * });
+ */
+export function useImportContent_UpdatePersonMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_UpdatePersonMutation, ImportContent_UpdatePersonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_UpdatePersonMutation, ImportContent_UpdatePersonMutationVariables>(ImportContent_UpdatePersonDocument, options);
+      }
+export type ImportContent_UpdatePersonMutationHookResult = ReturnType<typeof useImportContent_UpdatePersonMutation>;
+export type ImportContent_UpdatePersonMutationResult = Apollo.MutationResult<ImportContent_UpdatePersonMutation>;
+export type ImportContent_UpdatePersonMutationOptions = Apollo.BaseMutationOptions<ImportContent_UpdatePersonMutation, ImportContent_UpdatePersonMutationVariables>;
+export const ImportContent_UpdateTagDocument = gql`
+    mutation ImportContent_UpdateTag($id: uuid!, $tag: collection_Tag_set_input!) {
+  update_collection_Tag_by_pk(pk_columns: {id: $id}, _set: $tag) {
+    id
+  }
+}
+    `;
+export type ImportContent_UpdateTagMutationFn = Apollo.MutationFunction<ImportContent_UpdateTagMutation, ImportContent_UpdateTagMutationVariables>;
+
+/**
+ * __useImportContent_UpdateTagMutation__
+ *
+ * To run a mutation, you first call `useImportContent_UpdateTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_UpdateTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentUpdateTagMutation, { data, loading, error }] = useImportContent_UpdateTagMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      tag: // value for 'tag'
+ *   },
+ * });
+ */
+export function useImportContent_UpdateTagMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_UpdateTagMutation, ImportContent_UpdateTagMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_UpdateTagMutation, ImportContent_UpdateTagMutationVariables>(ImportContent_UpdateTagDocument, options);
+      }
+export type ImportContent_UpdateTagMutationHookResult = ReturnType<typeof useImportContent_UpdateTagMutation>;
+export type ImportContent_UpdateTagMutationResult = Apollo.MutationResult<ImportContent_UpdateTagMutation>;
+export type ImportContent_UpdateTagMutationOptions = Apollo.BaseMutationOptions<ImportContent_UpdateTagMutation, ImportContent_UpdateTagMutationVariables>;
+export const ImportContent_UpdateExhibitionDocument = gql`
+    mutation ImportContent_UpdateExhibition($id: uuid!, $exhibition: collection_Exhibition_set_input!) {
+  update_collection_Exhibition_by_pk(pk_columns: {id: $id}, _set: $exhibition) {
+    id
+  }
+}
+    `;
+export type ImportContent_UpdateExhibitionMutationFn = Apollo.MutationFunction<ImportContent_UpdateExhibitionMutation, ImportContent_UpdateExhibitionMutationVariables>;
+
+/**
+ * __useImportContent_UpdateExhibitionMutation__
+ *
+ * To run a mutation, you first call `useImportContent_UpdateExhibitionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImportContent_UpdateExhibitionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importContentUpdateExhibitionMutation, { data, loading, error }] = useImportContent_UpdateExhibitionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      exhibition: // value for 'exhibition'
+ *   },
+ * });
+ */
+export function useImportContent_UpdateExhibitionMutation(baseOptions?: Apollo.MutationHookOptions<ImportContent_UpdateExhibitionMutation, ImportContent_UpdateExhibitionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ImportContent_UpdateExhibitionMutation, ImportContent_UpdateExhibitionMutationVariables>(ImportContent_UpdateExhibitionDocument, options);
+      }
+export type ImportContent_UpdateExhibitionMutationHookResult = ReturnType<typeof useImportContent_UpdateExhibitionMutation>;
+export type ImportContent_UpdateExhibitionMutationResult = Apollo.MutationResult<ImportContent_UpdateExhibitionMutation>;
+export type ImportContent_UpdateExhibitionMutationOptions = Apollo.BaseMutationOptions<ImportContent_UpdateExhibitionMutation, ImportContent_UpdateExhibitionMutationVariables>;
 export const UpdateConferenceDocument = gql`
     mutation UpdateConference($id: uuid!, $name: String = "", $shortName: String = "", $slug: String = "") {
   update_conference_Conference(

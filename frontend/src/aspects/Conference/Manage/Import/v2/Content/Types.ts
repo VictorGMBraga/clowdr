@@ -11,7 +11,7 @@ export type Content_ImportStructure = PartialOrError<{
     type: Content_ItemType_Enum;
     tagIds: string[];
     tagNames: string[];
-    exhibitionIds: string[];
+    exhibitionIds: { priority: number; id: string }[];
     exhibitionNames: string[];
     discussionRoomIds: string[];
     chatId: string;
