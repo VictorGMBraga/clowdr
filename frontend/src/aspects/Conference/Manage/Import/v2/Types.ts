@@ -7,13 +7,15 @@ export type PartialOrError<T> = {
 export type Updates<S> = S extends PartialOrError<infer T> ? _Updates<T> : _Updates<S>;
 
 type _Updates<T> = {
-    -readonly [K in keyof T]?:
-        | T[K]
-        | ErrorInfo
-        | {
-              old?: T[K];
-              new: T[K];
-          };
+    -readonly [K in keyof T]?: T[K] extends ReadonlyArray<infer A> | ErrorInfo | undefined
+        ? Array<_Updates<A> | ErrorInfo> | ErrorInfo
+        :
+              | T[K]
+              | ErrorInfo
+              | {
+                    old?: T[K];
+                    new: T[K];
+                };
 };
 
 export function createUpdate<T>(
@@ -27,11 +29,11 @@ export function createUpdate<T>(
           old?: T;
           new: T;
       } {
-    if (oldData && "error" in oldData) {
+    if (oldData && typeof oldData === "object" && "error" in oldData) {
         return oldData;
     }
 
-    if ("error" in newData) {
+    if (typeof newData === "object" && "error" in newData) {
         return newData;
     }
 

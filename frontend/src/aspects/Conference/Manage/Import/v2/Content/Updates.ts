@@ -57,6 +57,7 @@ gql`
         id
         priority
         roleName
+        personId
     }
 
     fragment ImportContent_Uploader on content_Uploader {
@@ -268,23 +269,36 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
             }
         }
 
-        const resultItemData: Updates<ImportContent_ItemFragment> | undefined | ErrorInfo =
-            oldItemData && !("error" in oldItemData) ? { ...oldItemData } : oldItemData;
-        if (oldItemData && !("error" in oldItemData) && resultItemData && !("error" in resultItemData)) {
-            if (newItemData.title && oldItemData.title !== newItemData.title) {
-                resultItemData.title = createUpdate(oldItemData.title, newItemData.title);
+        const resultItemData: Updates<ImportContent_ItemFragment> | undefined | ErrorInfo = oldItemData
+            ? "error" in oldItemData
+                ? oldItemData
+                : {
+                      ...oldItemData,
+                      itemTags: [...oldItemData.itemTags],
+                      itemExhibitions: [...oldItemData.itemExhibitions],
+                      itemPeople: [...oldItemData.itemPeople],
+                      rooms: [...oldItemData.rooms],
+                      elements: oldItemData.elements.map((element) => ({
+                          ...element,
+                          uploaders: [...element.uploaders],
+                      })),
+                  }
+            : { id: { new: uuidv4() } };
+        if ((!oldItemData || !("error" in oldItemData)) && resultItemData && !("error" in resultItemData)) {
+            if (newItemData.title && oldItemData?.title !== newItemData.title) {
+                resultItemData.title = createUpdate(oldItemData?.title, newItemData.title);
             }
-            if (newItemData.shortTitle && oldItemData.shortTitle !== newItemData.shortTitle) {
-                resultItemData.shortTitle = createUpdate(oldItemData.shortTitle, newItemData.shortTitle);
+            if (newItemData.shortTitle && oldItemData?.shortTitle !== newItemData.shortTitle) {
+                resultItemData.shortTitle = createUpdate(oldItemData?.shortTitle, newItemData.shortTitle);
             }
-            if (newItemData.type && oldItemData.typeName !== newItemData.type) {
-                resultItemData.typeName = createUpdate(oldItemData.typeName, newItemData.type);
+            if (newItemData.type && oldItemData?.typeName !== newItemData.type) {
+                resultItemData.typeName = createUpdate(oldItemData?.typeName, newItemData.type);
             }
-            if (newItemData.chatId && oldItemData.chatId !== newItemData.chatId) {
-                resultItemData.chatId = createUpdate(oldItemData.chatId, newItemData.chatId);
+            if (newItemData.chatId && oldItemData?.chatId !== newItemData.chatId) {
+                resultItemData.chatId = createUpdate(oldItemData?.chatId, newItemData.chatId);
             }
 
-            if (!resultItemData.originatingData && newItemData.externallySourcedDataIds) {
+            if (!resultItemData?.originatingData && newItemData.externallySourcedDataIds) {
                 if ("error" in newItemData.externallySourcedDataIds) {
                     resultItemData.originatingData = newItemData.externallySourcedDataIds;
                 } else {
@@ -300,41 +314,21 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                 if (!resultItemData.itemTags || !("error" in resultItemData.itemTags)) {
                     if ("error" in newItemData.tagIds) {
                         resultItemData.itemTags = newItemData.tagIds;
-                    } else {
+                    } else if (!resultItemData.itemTags || !("error" in resultItemData.itemTags)) {
                         resultItemData.itemTags = resultItemData.itemTags ?? [];
                         const newTagIds: Set<string> = new Set();
 
-                        if (resultItemData.itemTags instanceof Array) {
-                            for (const newItemTagId of newItemData.tagIds) {
-                                if (!resultItemData.itemTags.some((x) => x.tagId === newItemTagId)) {
-                                    newTagIds.add(newItemTagId);
-                                }
-                            }
-                        } else {
-                            for (const newItemTagId of newItemData.tagIds) {
-                                if (!resultItemData.itemTags.new.some((x) => x.tagId === newItemTagId)) {
-                                    newTagIds.add(newItemTagId);
-                                }
+                        for (const newItemTagId of newItemData.tagIds) {
+                            if (!resultItemData.itemTags.some((x) => !("error" in x) && x.tagId === newItemTagId)) {
+                                newTagIds.add(newItemTagId);
                             }
                         }
 
                         if (newTagIds.size > 0) {
-                            resultItemData.itemTags = {
-                                old:
-                                    resultItemData.itemTags instanceof Array
-                                        ? resultItemData.itemTags
-                                        : resultItemData.itemTags.old,
-                                new:
-                                    resultItemData.itemTags instanceof Array
-                                        ? [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
-                                              id: { new: uuidv4() },
-                                              tagId,
-                                          }))
-                                        : [
-                                              ...resultItemData.itemTags.new,
-                                              ...[...newTagIds].map((tagId) => ({ id: { new: uuidv4() }, tagId })),
-                                          ],
-                            };
+                            resultItemData.itemTags = [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
+                                id: { new: uuidv4() },
+                                tagId,
+                            }));
                         }
                     }
                 }
@@ -344,119 +338,64 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                 if (!resultItemData.itemTags || !("error" in resultItemData.itemTags)) {
                     if ("error" in newItemData.tagNames) {
                         resultItemData.itemTags = newItemData.tagNames;
-                    } else {
+                    } else if (!resultItemData.itemTags || !("error" in resultItemData.itemTags)) {
                         resultItemData.itemTags = resultItemData.itemTags ?? [];
                         const newTagIds: Set<string> = new Set();
 
-                        if (resultItemData.itemTags instanceof Array) {
-                            for (const newItemTagName of newItemData.tagNames) {
-                                let added = false;
-                                for (const existingTag of result.tags.values()) {
+                        for (const newItemTagName of newItemData.tagNames) {
+                            let added = false;
+                            for (const existingTag of result.tags.values()) {
+                                if (
+                                    !("error" in existingTag) &&
+                                    existingTag.name &&
+                                    (typeof existingTag.name === "string" || !("error" in existingTag.name)) &&
+                                    existingTag.id &&
+                                    (typeof existingTag.id === "string" || !("error" in existingTag.id))
+                                ) {
                                     if (
-                                        !("error" in existingTag) &&
-                                        existingTag.name &&
-                                        (typeof existingTag.name === "string" || !("error" in existingTag.name)) &&
-                                        existingTag.id &&
-                                        (typeof existingTag.id === "string" || !("error" in existingTag.id))
+                                        typeof existingTag.name === "string"
+                                            ? existingTag.name === newItemTagName
+                                            : existingTag.name.new === newItemTagName
                                     ) {
-                                        if (
-                                            typeof existingTag.name === "string"
-                                                ? existingTag.name === newItemTagName
-                                                : existingTag.name.new === newItemTagName
-                                        ) {
-                                            if (typeof existingTag.id === "string") {
-                                                if (!resultItemData.itemTags.some((x) => x.tagId === existingTag.id)) {
-                                                    newTagIds.add(existingTag.id);
-                                                }
-                                            } else {
-                                                if (
-                                                    !resultItemData.itemTags.some((x) => x.tagId === existingTag.id.new)
-                                                ) {
-                                                    newTagIds.add(existingTag.id.new);
-                                                }
+                                        if (typeof existingTag.id === "string") {
+                                            if (
+                                                !resultItemData.itemTags.some(
+                                                    (x) => !("error" in x) && x.tagId === existingTag.id
+                                                )
+                                            ) {
+                                                newTagIds.add(existingTag.id);
                                             }
-                                            added = true;
-                                            break;
+                                        } else {
+                                            if (
+                                                !resultItemData.itemTags.some(
+                                                    (x) => !("error" in x) && x.tagId === existingTag.id.new
+                                                )
+                                            ) {
+                                                newTagIds.add(existingTag.id.new);
+                                            }
                                         }
+                                        added = true;
+                                        break;
                                     }
-                                }
-                                if (!added) {
-                                    const newTag = {
-                                        id: { new: uuidv4() },
-                                        name: newItemTagName,
-                                        colour: "rgba(0,0,0,1)",
-                                        priority: 10,
-                                    };
-                                    result.tags.set(newTag.id.new, newTag);
-                                    newTagIds.add(newTag.id.new);
                                 }
                             }
-                        } else {
-                            for (const newItemTagName of newItemData.tagNames) {
-                                let added = false;
-                                for (const existingTag of result.tags.values()) {
-                                    if (
-                                        !("error" in existingTag) &&
-                                        existingTag.name &&
-                                        (typeof existingTag.name === "string" || !("error" in existingTag.name)) &&
-                                        existingTag.id &&
-                                        (typeof existingTag.id === "string" || !("error" in existingTag.id))
-                                    ) {
-                                        if (
-                                            typeof existingTag.name === "string"
-                                                ? existingTag.name === newItemTagName
-                                                : existingTag.name.new === newItemTagName
-                                        ) {
-                                            if (typeof existingTag.id === "string") {
-                                                if (
-                                                    !resultItemData.itemTags.new.some((x) => x.tagId === existingTag.id)
-                                                ) {
-                                                    newTagIds.add(existingTag.id);
-                                                }
-                                            } else {
-                                                if (
-                                                    !resultItemData.itemTags.new.some(
-                                                        (x) => x.tagId === existingTag.id.new
-                                                    )
-                                                ) {
-                                                    newTagIds.add(existingTag.id.new);
-                                                }
-                                            }
-                                            added = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!added) {
-                                    const newTag = {
-                                        id: { new: uuidv4() },
-                                        name: newItemTagName,
-                                        colour: "rgba(0,0,0,1)",
-                                        priority: 10,
-                                    };
-                                    result.tags.set(newTag.id.new, newTag);
-                                    newTagIds.add(newTag.id.new);
-                                }
+                            if (!added) {
+                                const newTag = {
+                                    id: { new: uuidv4() },
+                                    name: newItemTagName,
+                                    colour: "rgba(0,0,0,1)",
+                                    priority: 10,
+                                };
+                                result.tags.set(newTag.id.new, newTag);
+                                newTagIds.add(newTag.id.new);
                             }
                         }
 
                         if (newTagIds.size > 0) {
-                            resultItemData.itemTags = {
-                                old:
-                                    resultItemData.itemTags instanceof Array
-                                        ? resultItemData.itemTags
-                                        : resultItemData.itemTags.old,
-                                new:
-                                    resultItemData.itemTags instanceof Array
-                                        ? [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
-                                              id: { new: uuidv4() },
-                                              tagId,
-                                          }))
-                                        : [
-                                              ...resultItemData.itemTags.new,
-                                              ...[...newTagIds].map((tagId) => ({ id: { new: uuidv4() }, tagId })),
-                                          ],
-                            };
+                            resultItemData.itemTags = [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
+                                id: { new: uuidv4() },
+                                tagId,
+                            }));
                         }
                     }
                 }
@@ -466,56 +405,29 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                 if (!resultItemData.itemExhibitions || !("error" in resultItemData.itemExhibitions)) {
                     if ("error" in newItemData.exhibitionIds) {
                         resultItemData.itemExhibitions = newItemData.exhibitionIds;
-                    } else {
+                    } else if (!resultItemData.itemExhibitions || !("error" in resultItemData.itemExhibitions)) {
                         resultItemData.itemExhibitions = resultItemData.itemExhibitions ?? [];
                         const newExhibitionIds: { priority: number; id: string }[] = [];
 
-                        if (resultItemData.itemExhibitions instanceof Array) {
-                            for (const newItemExhibitionId of newItemData.exhibitionIds) {
-                                if (
-                                    !resultItemData.itemExhibitions.some(
-                                        (x) => x.exhibitionId === newItemExhibitionId.id
-                                    )
-                                ) {
-                                    newExhibitionIds.push(newItemExhibitionId);
-                                }
-                            }
-                        } else {
-                            for (const newItemExhibitionId of newItemData.exhibitionIds) {
-                                if (
-                                    !resultItemData.itemExhibitions.new.some(
-                                        (x) => x.exhibitionId === newItemExhibitionId.id
-                                    )
-                                ) {
-                                    newExhibitionIds.push(newItemExhibitionId);
-                                }
+                        for (const newItemExhibitionId of newItemData.exhibitionIds) {
+                            if (
+                                !resultItemData.itemExhibitions.some(
+                                    (x) => !("error" in x) && x.exhibitionId === newItemExhibitionId.id
+                                )
+                            ) {
+                                newExhibitionIds.push(newItemExhibitionId);
                             }
                         }
 
                         if (newExhibitionIds.length > 0) {
-                            resultItemData.itemExhibitions = {
-                                old:
-                                    resultItemData.itemExhibitions instanceof Array
-                                        ? resultItemData.itemExhibitions
-                                        : resultItemData.itemExhibitions.old,
-                                new:
-                                    resultItemData.itemExhibitions instanceof Array
-                                        ? [...resultItemData.itemExhibitions, ...newExhibitionIds].map(
-                                              (exhibitionId) => ({
-                                                  id: { new: uuidv4() },
-                                                  exhibitionId: exhibitionId.id,
-                                                  priority: exhibitionId.priority,
-                                              })
-                                          )
-                                        : [
-                                              ...resultItemData.itemExhibitions.new,
-                                              ...[...newExhibitionIds].map((exhibitionId) => ({
-                                                  id: { new: uuidv4() },
-                                                  exhibitionId: exhibitionId.id,
-                                                  priority: exhibitionId.priority,
-                                              })),
-                                          ],
-                            };
+                            resultItemData.itemExhibitions = [
+                                ...resultItemData.itemExhibitions,
+                                ...newExhibitionIds.map((exhibitionId) => ({
+                                    id: { new: uuidv4() },
+                                    exhibitionId: exhibitionId.id,
+                                    priority: exhibitionId.priority,
+                                })),
+                            ];
                         }
                     }
                 }
@@ -525,145 +437,199 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                 if (!resultItemData.itemExhibitions || !("error" in resultItemData.itemExhibitions)) {
                     if ("error" in newItemData.exhibitionNames) {
                         resultItemData.itemExhibitions = newItemData.exhibitionNames;
-                    } else {
+                    } else if (!resultItemData.itemExhibitions || !("error" in resultItemData.itemExhibitions)) {
                         resultItemData.itemExhibitions = resultItemData.itemExhibitions ?? [];
                         const newExhibitionIds: Set<string> = new Set();
 
-                        if (resultItemData.itemExhibitions instanceof Array) {
-                            for (const newItemExhibitionName of newItemData.exhibitionNames) {
-                                let added = false;
-                                for (const existingExhibition of result.exhibitions.values()) {
+                        for (const newItemExhibitionName of newItemData.exhibitionNames) {
+                            let added = false;
+                            for (const existingExhibition of result.exhibitions.values()) {
+                                if (
+                                    !("error" in existingExhibition) &&
+                                    existingExhibition.name &&
+                                    (typeof existingExhibition.name === "string" ||
+                                        !("error" in existingExhibition.name)) &&
+                                    existingExhibition.id &&
+                                    (typeof existingExhibition.id === "string" || !("error" in existingExhibition.id))
+                                ) {
                                     if (
-                                        !("error" in existingExhibition) &&
-                                        existingExhibition.name &&
-                                        (typeof existingExhibition.name === "string" ||
-                                            !("error" in existingExhibition.name)) &&
-                                        existingExhibition.id &&
-                                        (typeof existingExhibition.id === "string" ||
-                                            !("error" in existingExhibition.id))
+                                        typeof existingExhibition.name === "string"
+                                            ? existingExhibition.name === newItemExhibitionName
+                                            : existingExhibition.name.new === newItemExhibitionName
                                     ) {
-                                        if (
-                                            typeof existingExhibition.name === "string"
-                                                ? existingExhibition.name === newItemExhibitionName
-                                                : existingExhibition.name.new === newItemExhibitionName
-                                        ) {
-                                            if (typeof existingExhibition.id === "string") {
-                                                if (
-                                                    !resultItemData.itemExhibitions.some(
-                                                        (x) => x.exhibitionId === existingExhibition.id
-                                                    )
-                                                ) {
-                                                    newExhibitionIds.add(existingExhibition.id);
-                                                }
-                                            } else {
-                                                if (
-                                                    !resultItemData.itemExhibitions.some(
-                                                        (x) => x.exhibitionId === existingExhibition.id.new
-                                                    )
-                                                ) {
-                                                    newExhibitionIds.add(existingExhibition.id.new);
-                                                }
+                                        if (typeof existingExhibition.id === "string") {
+                                            if (
+                                                !resultItemData.itemExhibitions.some(
+                                                    (x) => !("error" in x) && x.exhibitionId === existingExhibition.id
+                                                )
+                                            ) {
+                                                newExhibitionIds.add(existingExhibition.id);
                                             }
-                                            added = true;
-                                            break;
+                                        } else {
+                                            if (
+                                                !resultItemData.itemExhibitions.some(
+                                                    (x) =>
+                                                        !("error" in x) && x.exhibitionId === existingExhibition.id.new
+                                                )
+                                            ) {
+                                                newExhibitionIds.add(existingExhibition.id.new);
+                                            }
                                         }
+                                        added = true;
+                                        break;
                                     }
-                                }
-                                if (!added) {
-                                    const newExhibition = {
-                                        id: { new: uuidv4() },
-                                        name: newItemExhibitionName,
-                                        colour: "rgba(0,0,0,1)",
-                                        priority: 10,
-                                        isHidden: false,
-                                    };
-                                    result.exhibitions.set(newExhibition.id.new, newExhibition);
-                                    newExhibitionIds.add(newExhibition.id.new);
                                 }
                             }
-                        } else {
-                            for (const newItemExhibitionName of newItemData.exhibitionNames) {
-                                let added = false;
-                                for (const existingExhibition of result.exhibitions.values()) {
-                                    if (
-                                        !("error" in existingExhibition) &&
-                                        existingExhibition.name &&
-                                        (typeof existingExhibition.name === "string" ||
-                                            !("error" in existingExhibition.name)) &&
-                                        existingExhibition.id &&
-                                        (typeof existingExhibition.id === "string" ||
-                                            !("error" in existingExhibition.id))
-                                    ) {
-                                        if (
-                                            typeof existingExhibition.name === "string"
-                                                ? existingExhibition.name === newItemExhibitionName
-                                                : existingExhibition.name.new === newItemExhibitionName
-                                        ) {
-                                            if (typeof existingExhibition.id === "string") {
-                                                if (
-                                                    !resultItemData.itemExhibitions.new.some(
-                                                        (x) => x.exhibitionId === existingExhibition.id
-                                                    )
-                                                ) {
-                                                    newExhibitionIds.add(existingExhibition.id);
-                                                }
-                                            } else {
-                                                if (
-                                                    !resultItemData.itemExhibitions.new.some(
-                                                        (x) => x.exhibitionId === existingExhibition.id.new
-                                                    )
-                                                ) {
-                                                    newExhibitionIds.add(existingExhibition.id.new);
-                                                }
-                                            }
-                                            added = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!added) {
-                                    const newExhibition = {
-                                        id: { new: uuidv4() },
-                                        name: newItemExhibitionName,
-                                        colour: "rgba(0,0,0,1)",
-                                        priority: 10,
-                                        isHidden: false,
-                                    };
-                                    result.exhibitions.set(newExhibition.id.new, newExhibition);
-                                    newExhibitionIds.add(newExhibition.id.new);
-                                }
+                            if (!added) {
+                                const newExhibition = {
+                                    id: { new: uuidv4() },
+                                    name: newItemExhibitionName,
+                                    colour: "rgba(0,0,0,1)",
+                                    priority: 10,
+                                    isHidden: false,
+                                };
+                                result.exhibitions.set(newExhibition.id.new, newExhibition);
+                                newExhibitionIds.add(newExhibition.id.new);
                             }
                         }
 
                         if (newExhibitionIds.size > 0) {
-                            resultItemData.itemExhibitions = {
-                                old:
-                                    resultItemData.itemExhibitions instanceof Array
-                                        ? resultItemData.itemExhibitions
-                                        : resultItemData.itemExhibitions.old,
-                                new:
-                                    resultItemData.itemExhibitions instanceof Array
-                                        ? [...resultItemData.itemExhibitions, ...newExhibitionIds].map(
-                                              (exhibitionId) => ({
-                                                  id: { new: uuidv4() },
-                                                  exhibitionId,
-                                              })
-                                          )
-                                        : [
-                                              ...resultItemData.itemExhibitions.new,
-                                              ...[...newExhibitionIds].map((exhibitionId) => ({
-                                                  id: { new: uuidv4() },
-                                                  exhibitionId,
-                                              })),
-                                          ],
-                            };
+                            resultItemData.itemExhibitions = [
+                                ...resultItemData.itemExhibitions,
+                                ...[...newExhibitionIds].map((exhibitionId) => ({
+                                    id: { new: uuidv4() },
+                                    exhibitionId,
+                                })),
+                            ];
                         }
                     }
                 }
             }
 
-            // TODO:
-            // itemPeople
+            if (newItemData.people) {
+                if ("error" in newItemData.people) {
+                    resultItemData.itemPeople = newItemData.people;
+                } else if (!resultItemData.itemPeople || !("error" in resultItemData.itemPeople)) {
+                    resultItemData.itemPeople = resultItemData.itemPeople ?? [];
+
+                    for (const newItemPerson of newItemData.people) {
+                        if (newItemPerson.roleName && typeof newItemPerson.roleName !== "string") {
+                            resultItemData.itemPeople.push(newItemPerson.roleName);
+                        } else if (newItemPerson.id && typeof newItemPerson.id !== "string") {
+                            resultItemData.itemPeople.push(newItemPerson.id);
+                        } else if (newItemPerson.priority && typeof newItemPerson.priority !== "number") {
+                            resultItemData.itemPeople.push(newItemPerson.priority);
+                        } else if (newItemPerson.name && typeof newItemPerson.name !== "string") {
+                            resultItemData.itemPeople.push(newItemPerson.name);
+                        } else if (newItemPerson.affiliation && typeof newItemPerson.affiliation !== "string") {
+                            resultItemData.itemPeople.push(newItemPerson.affiliation);
+                        } else if (newItemPerson.email && typeof newItemPerson.email !== "string") {
+                            resultItemData.itemPeople.push(newItemPerson.email);
+                        } else {
+                            let added = false;
+                            if (oldItemData) {
+                                for (const oldItemPerson of oldItemData.itemPeople) {
+                                    if (!newItemPerson.roleName || oldItemPerson.roleName === newItemPerson.roleName) {
+                                        if (newItemPerson.id === oldItemPerson.personId) {
+                                            added = true;
+                                            break;
+                                        } else if (!newItemPerson.id) {
+                                            const oldPersonData = result.people.get(oldItemPerson.personId);
+                                            if (oldPersonData && !("error" in oldPersonData)) {
+                                                if (
+                                                    oldPersonData.name &&
+                                                    typeof oldPersonData.name === "string" &&
+                                                    newItemPerson.name === oldPersonData.name &&
+                                                    ((newItemPerson.affiliation &&
+                                                        oldPersonData.affiliation &&
+                                                        typeof oldPersonData.affiliation === "string" &&
+                                                        newItemPerson.affiliation === oldPersonData.affiliation) ||
+                                                        (!newItemPerson.affiliation &&
+                                                            oldPersonData.affiliation &&
+                                                            typeof oldPersonData.affiliation === "string" &&
+                                                            oldPersonData.affiliation === ""))
+                                                ) {
+                                                    added = true;
+                                                    break;
+                                                } else if (
+                                                    oldPersonData.email &&
+                                                    typeof oldPersonData.email === "string" &&
+                                                    newItemPerson.email === oldPersonData.email
+                                                ) {
+                                                    added = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!added) {
+                                const _person: ErrorInfo | Updates<ImportContent_ProgramPersonFragment> | undefined =
+                                    newItemPerson.id ? result.people.get(newItemPerson.id) : undefined;
+                                let person: Updates<ImportContent_ProgramPersonFragment> | undefined;
+                                if (_person && !("error" in _person)) {
+                                    person = _person;
+                                }
+                                if (!person) {
+                                    if (newItemPerson.name) {
+                                        for (const possiblePerson of result.people.values()) {
+                                            if (!("error" in possiblePerson) && possiblePerson.name) {
+                                                if (
+                                                    newItemPerson.name === possiblePerson.name &&
+                                                    ((!newItemPerson.affiliation &&
+                                                        possiblePerson.affiliation === "") ||
+                                                        (newItemPerson.affiliation &&
+                                                            possiblePerson.affiliation === newItemPerson.affiliation))
+                                                ) {
+                                                    person = possiblePerson;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!person) {
+                                    if (newItemPerson.email) {
+                                        for (const possiblePerson of result.people.values()) {
+                                            if (!("error" in possiblePerson) && possiblePerson.email) {
+                                                if (
+                                                    newItemPerson.email === possiblePerson.email &&
+                                                    ((!newItemPerson.affiliation &&
+                                                        possiblePerson.affiliation === "") ||
+                                                        (newItemPerson.affiliation &&
+                                                            possiblePerson.affiliation === newItemPerson.affiliation))
+                                                ) {
+                                                    person = possiblePerson;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (!person) {
+                                    person = {
+                                        id: { new: uuidv4() },
+                                        affiliation: newItemPerson.affiliation,
+                                        email: newItemPerson.email,
+                                        name: newItemPerson.name,
+                                    };
+                                    result.people.set(person.id.new, person);
+                                }
+
+                                resultItemData.itemPeople.push({
+                                    id: { new: uuidv4() },
+                                    personId: person.id,
+                                    priority: newItemPerson.priority,
+                                    roleName: newItemPerson.roleName,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
 
             // TODO:
             // elements
@@ -671,7 +637,12 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
 
         if (resultItemData) {
             result.items.set(
-                resultItemData && !("error" in resultItemData) ? resultItemData.id : uuidv4(),
+                resultItemData &&
+                    !("error" in resultItemData) &&
+                    resultItemData.id &&
+                    typeof resultItemData.id === "string"
+                    ? resultItemData.id
+                    : uuidv4(),
                 resultItemData
             );
         }
