@@ -82,6 +82,7 @@ import FAIcon from "../../../Icons/FAIcon";
 import { useTitle } from "../../../Utils/useTitle";
 import RequireAtLeastOnePermissionWrapper from "../../RequireAtLeastOnePermissionWrapper";
 import { useConference } from "../../useConference";
+import { escapeArrayForExport } from "../Export/Escaping";
 import BatchAddEventPeople from "./BatchAddEventPeople";
 import ContinuationsEditor from "./ContinuationsEditor";
 import { EventProgramPersonsModal, requiresEventPeople } from "./EventProgramPersonsModal";
@@ -1279,34 +1280,40 @@ function EditableScheduleTable(): JSX.Element {
 
                                 "Shuffle Period Id": event.shufflePeriodId ?? "",
 
-                                People: event.eventPeople.map((eventPerson) => {
-                                    const person = wholeSchedule.data?.collection_ProgramPerson.find(
-                                        (person) => person.id === eventPerson.personId
-                                    );
-                                    return `${eventPerson.personId} (${eventPerson.roleName}) [${
-                                        person
-                                            ? `${person.name} (${person.affiliation ?? "No affiliation"}) <${
-                                                  person.email ?? "No email"
-                                              }> ${person?.registrantId ? "Registered" : "Unregistered"}`
-                                            : "Person not found"
-                                    }]`;
-                                }),
-                                "Registered People": event.eventPeople.flatMap((eventPerson) => {
-                                    const person = wholeSchedule.data?.collection_ProgramPerson.find(
-                                        (person) => person.id === eventPerson.personId
-                                    );
-                                    return person?.registrantId
-                                        ? [
-                                              `${eventPerson.personId} (${eventPerson.roleName}) [${
-                                                  person
-                                                      ? `${person.name} (${person.affiliation ?? "No affiliation"}) <${
-                                                            person.email ?? "No email"
-                                                        }>`
-                                                      : "Person not found"
-                                              }]`,
-                                          ]
-                                        : [];
-                                }),
+                                People: escapeArrayForExport(
+                                    event.eventPeople.map((eventPerson) => {
+                                        const person = wholeSchedule.data?.collection_ProgramPerson.find(
+                                            (person) => person.id === eventPerson.personId
+                                        );
+                                        return `${eventPerson.personId} (${eventPerson.roleName}) [${
+                                            person
+                                                ? `${person.name.replace(/[(<]/g, "[").replace(/[)>]/g, "]")} (${
+                                                      person.affiliation ?? "No affiliation"
+                                                  }) <${person.email ?? "No email"}> ${
+                                                      person?.registrantId ? "Registered" : "Unregistered"
+                                                  }`
+                                                : "Person not found"
+                                        }]`;
+                                    })
+                                ),
+                                "Registered People": escapeArrayForExport(
+                                    event.eventPeople.flatMap((eventPerson) => {
+                                        const person = wholeSchedule.data?.collection_ProgramPerson.find(
+                                            (person) => person.id === eventPerson.personId
+                                        );
+                                        return person?.registrantId
+                                            ? [
+                                                  `${eventPerson.personId} (${eventPerson.roleName}) [${
+                                                      person
+                                                          ? `${person.name} (${
+                                                                person.affiliation ?? "No affiliation"
+                                                            }) <${person.email ?? "No email"}>`
+                                                          : "Person not found"
+                                                  }]`,
+                                              ]
+                                            : [];
+                                    })
+                                ),
 
                                 "Participate Link": `${window.location.origin}/conference/${conference.slug}/room/${event.roomId}`,
                                 "Info link": event.itemId

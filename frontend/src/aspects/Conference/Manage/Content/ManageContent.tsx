@@ -64,6 +64,7 @@ import { maybeCompare } from "../../../Utils/maybeSort";
 import { useTitle } from "../../../Utils/useTitle";
 import RequireAtLeastOnePermissionWrapper from "../../RequireAtLeastOnePermissionWrapper";
 import { useConference } from "../../useConference";
+import { escapeArrayForExport } from "../Export/Escaping";
 import { BulkOperationMenu } from "./v2/BulkOperations/BulkOperationMenu";
 import ManageExhibitionsModal from "./v2/Exhibition/ManageExhibitionsModal";
 import { SecondaryEditor } from "./v2/Item/SecondaryEditor";
@@ -164,7 +165,10 @@ gql`
         title
         shortTitle
         typeName
-        originatingDataId
+        originatingData {
+            id
+            sourceId
+        }
         itemTags {
             id
             tagId
@@ -920,38 +924,46 @@ export default function ManageContentV2(): JSX.Element {
                                 const result: any = {
                                     "Conference Id": item.conferenceId,
                                     "Content Id": item.id,
-                                    "Externally Sourced Data Id": item.originatingDataId,
+                                    "Externally Sourced Data Ids": item.originatingData?.sourceId ?? "",
 
                                     Title: item.title,
                                     "Short Title": item.shortTitle ?? "",
                                     Type: item.typeName,
                                     "Tag Ids": item.itemTags.map((itemTag) => itemTag.tagId),
-                                    "Tag Names": item.itemTags.map(
-                                        (itemTag) =>
-                                            allTags?.collection_Tag.find((tag) => tag.id === itemTag.tagId)?.name ??
-                                            "!!Unknown!!"
+                                    "Tag Names": escapeArrayForExport(
+                                        item.itemTags.map(
+                                            (itemTag) =>
+                                                allTags?.collection_Tag.find((tag) => tag.id === itemTag.tagId)?.name ??
+                                                "!!Unknown!!"
+                                        )
                                     ),
                                     "Exhibition Ids": item.itemExhibitions.map(
                                         (itemExh) => `${itemExh.priority ?? "N"}: ${itemExh.exhibitionId}`
                                     ),
-                                    "Exhibition Names": item.itemExhibitions.map(
-                                        (itemExh) =>
-                                            allExhibitions?.collection_Exhibition.find(
-                                                (exh) => exh.id === itemExh.exhibitionId
-                                            )?.name ?? "!!Unknown!!"
+                                    "Exhibition Names": escapeArrayForExport(
+                                        item.itemExhibitions.map(
+                                            (itemExh) =>
+                                                allExhibitions?.collection_Exhibition.find(
+                                                    (exh) => exh.id === itemExh.exhibitionId
+                                                )?.name ?? "!!Unknown!!"
+                                        )
                                     ),
                                     "Discussion Room Ids": item.rooms.map((room) => room.id),
                                     "Chat Id": item.chatId ?? "",
 
-                                    People: item.itemPeople.map(
-                                        (itemPerson) =>
-                                            `${itemPerson.priority ?? "N"}: ${itemPerson.person.id} (${
-                                                itemPerson.roleName
-                                            }) [${itemPerson.person.name} (${
-                                                itemPerson.person.affiliation?.length
-                                                    ? itemPerson.person.affiliation
-                                                    : "No affiliation"
-                                            }) <${itemPerson.person.email ?? "No email"}>]`
+                                    People: escapeArrayForExport(
+                                        item.itemPeople.map(
+                                            (itemPerson) =>
+                                                `${itemPerson.priority ?? "N"}: ${itemPerson.person.id} (${
+                                                    itemPerson.roleName
+                                                }) [${itemPerson.person.name
+                                                    .replace(/[(<]/g, "[")
+                                                    .replace(/[)>]/g, "]")} (${
+                                                    itemPerson.person.affiliation?.length
+                                                        ? itemPerson.person.affiliation
+                                                        : "No affiliation"
+                                                }) <${itemPerson.person.email ?? "No email"}>]`
+                                        )
                                     ),
                                 };
 
@@ -975,7 +987,9 @@ export default function ManageContentV2(): JSX.Element {
                                                 result[`${baseName}: Latest Version: Data`] = "";
                                                 break;
                                             case ElementBaseType.File:
-                                                result[`${baseName}: Latest Version: Data`] = latestData.s3Url;
+                                                result[`${baseName}: Latest Version: S3 URL`] = latestData.s3Url;
+                                                result[`${baseName}: Latest Version: Alt Text`] =
+                                                    latestData.altText ?? "";
                                                 break;
                                             case ElementBaseType.Link:
                                                 result[`${baseName}: Latest Version: Text`] = latestData.text;
@@ -986,12 +1000,15 @@ export default function ManageContentV2(): JSX.Element {
                                                 break;
                                             case ElementBaseType.URL:
                                                 result[`${baseName}: Latest Version: URL`] = latestData.url;
+                                                result[`${baseName}: Latest Version: Title`] = latestData.title ?? "";
                                                 break;
                                             case ElementBaseType.Video:
-                                                result[`${baseName}: Latest Version: Video: S3 URL`] = latestData.s3Url;
-                                                result[`${baseName}: Latest Version: Video: Subtitles`] =
-                                                    JSON.stringify(latestData.subtitles);
-                                                result[`${baseName}: Latest Version: Video: Full Data`] =
+                                            case ElementBaseType.Audio:
+                                                result[`${baseName}: Latest Version: A/V: S3 URL`] = latestData.s3Url;
+                                                result[`${baseName}: Latest Version: A/V: Subtitles`] = JSON.stringify(
+                                                    latestData.subtitles
+                                                );
+                                                result[`${baseName}: Latest Version: A/V: Full Data`] =
                                                     JSON.stringify(latestData);
                                                 break;
                                         }
@@ -1003,11 +1020,13 @@ export default function ManageContentV2(): JSX.Element {
                                         result[`${baseName}: Layout: Is Wide`] = layoutData.wide;
                                     }
                                     result[`${baseName}: Uploads Remaining`] = element.uploadsRemaining ?? "Unlimited";
-                                    result[`${baseName}: Hidden`] = element.isHidden ? "Yes" : "No";
+                                    result[`${baseName}: Is Hidden`] = element.isHidden ? "Yes" : "No";
                                     result[`${baseName}: Updated At`] = element.updatedAt;
-                                    result[`${baseName}: Uploaders`] = element.uploaders.map(
-                                        (uploader) =>
-                                            `${uploader.name} <${uploader.email}> (Emails sent: ${uploader.emailsSentCount})`
+                                    result[`${baseName}: Uploaders`] = escapeArrayForExport(
+                                        element.uploaders.map(
+                                            (uploader) =>
+                                                `${uploader.name} <${uploader.email}> (Emails sent: ${uploader.emailsSentCount})`
+                                        )
                                     );
                                 }
 

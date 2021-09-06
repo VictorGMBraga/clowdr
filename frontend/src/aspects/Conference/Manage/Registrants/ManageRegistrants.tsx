@@ -61,6 +61,7 @@ import { FAIcon } from "../../../Icons/FAIcon";
 import { useTitle } from "../../../Utils/useTitle";
 import RequireAtLeastOnePermissionWrapper from "../../RequireAtLeastOnePermissionWrapper";
 import { useConference } from "../../useConference";
+import { escapeArrayForExport } from "../Export/Escaping";
 import { SendEmailModal } from "./SendEmailModal";
 
 gql`
@@ -775,10 +776,12 @@ export default function ManageRegistrants(): JSX.Element {
                                     "Invite sent": registrant.inviteSent ? "Yes" : "No",
                                     "Invite accepted": registrant.userId ? "Yes" : "No",
                                     "Group Ids": registrant.groupRegistrants.map((x) => x.groupId),
-                                    "Group Names": registrant.groupRegistrants.map(
-                                        (x) =>
-                                            allGroups?.permissions_Group.find((g) => g.id === x.groupId)?.name ??
-                                            "<Hidden>"
+                                    "Group Names": escapeArrayForExport(
+                                        registrant.groupRegistrants.map(
+                                            (x) =>
+                                                allGroups?.permissions_Group.find((g) => g.id === x.groupId)?.name ??
+                                                "<Hidden>"
+                                        )
                                     ),
                                     "Created At": registrant.createdAt,
                                     "Updated At": registrant.updatedAt,
@@ -788,9 +791,10 @@ export default function ManageRegistrants(): JSX.Element {
                                     const profile = profiles.find((x) => x.registrantId === registrant.id);
                                     result["Profile Data Exportable"] = profile ? "Yes" : "No";
                                     result["Has Been Edited"] = profile ? (profile.hasBeenEdited ? "Yes" : "No") : "";
-                                    result.Badges =
+                                    result.Badges = escapeArrayForExport(
                                         profile?.badges?.map((badge: BadgeData) => `${badge.name} [${badge.colour}]`) ??
-                                        "";
+                                            []
+                                    );
                                     result.Affiliation = profile?.affiliation ?? "";
                                     result.Country = profile?.country ?? "";
                                     result["Timezone UTC Offset"] = profile?.timezoneUTCOffset ?? "";

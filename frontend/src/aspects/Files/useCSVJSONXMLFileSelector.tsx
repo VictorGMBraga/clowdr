@@ -74,9 +74,13 @@ export default function useCSVJSONXMLFileSelector(): {
     acceptedFiles: FileInfo[];
     component: JSX.Element;
 } {
-    const { acceptedFiles: rawAcceptedFiles, fileRejections, getRootProps, getInputProps } = useDropzone({
-        accept:
-            ".csv, .txt, .json, .xml, .CSV, .TXT, .JSON, .XML, .zip, .ZIP, text/plain, text/csv, application/json, text/xml, application/zip",
+    const {
+        acceptedFiles: rawAcceptedFiles,
+        fileRejections,
+        getRootProps,
+        getInputProps,
+    } = useDropzone({
+        accept: ".csv, .txt, .json, .xml, .CSV, .TXT, .JSON, .XML, .zip, .ZIP, text/plain, text/csv, application/json, text/xml, application/zip",
         multiple: true,
     });
 
@@ -225,7 +229,7 @@ export default function useCSVJSONXMLFileSelector(): {
                         <HStack>
                             <FAIcon iconStyle="s" icon="file-alt" fontSize="190%" />
                             <Box pl={2}>
-                                <Text as="p">Drag and drop some files here, or click to select files</Text>
+                                <Text as="p">Drag and drop your files here, or click to select files</Text>
                                 <Text as="em">
                                     (Please select one or more CSV, JSON or XML files or ZIP files containing
                                     CSV/JSON/XML files.)

@@ -116,18 +116,23 @@ function SecondaryEditorInner({
     });
     const [defaultOpenSecurityForId, setDefaultOpenSecurityForId] = useState<string | null>(null);
 
+    const isLandingPage = itemType === Content_ItemType_Enum.LandingPage;
     return (
         <VStack w="100%" alignItems="flex-start">
             <HStack flexWrap="wrap" justifyContent="flex-start" w="100%" gridRowGap={2}>
                 <LinkButton
                     size="sm"
-                    to={`/conference/${conference.slug}/item/${itemId}`}
+                    to={
+                        isLandingPage
+                            ? `/conference/${conference.slug}/`
+                            : `/conference/${conference.slug}/item/${itemId}`
+                    }
                     isExternal
-                    aria-label="View item"
-                    title="View item"
+                    aria-label={isLandingPage ? "View landing page" : "View item"}
+                    title={isLandingPage ? "View landing page" : "View item"}
                 >
                     <FAIcon iconStyle="s" icon="link" mr={2} />
-                    View item&nbsp;
+                    {isLandingPage ? "View landing page" : "View item"}&nbsp;
                     <ExternalLinkIcon />
                 </LinkButton>
                 {itemResponse.data?.content_Item_by_pk ? (
