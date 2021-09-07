@@ -60,15 +60,16 @@ export default function DataPanel({
             <Heading as="h2" fontSize="xl" textAlign="left">
                 Step 1: Select your files
             </Heading>
-            <HStack w="100%" alignItems="flex-start" spacing={4}>
+            <HStack w="100%" spacing={4}>
                 {fileImporterEl}
-                <VStack alignItems="flex-start" maxW="20em">
+                <VStack alignItems="flex-start" flex="0 1 35em">
                     <Heading as="h3" fontSize="md" textAlign="left" alignSelf="flex-start">
                         File Options
                     </Heading>
                     <Text>Use the importer options to configure our file reader to interpret your files.</Text>
                     <Text>
-                        For example, for CSV files you may need to change the separator from a comma to a semi-colon.
+                        For example, for some kinds of CSV files you may need to change the separator from a comma to a
+                        semi-colon.
                     </Text>
                     {openOptionsButton}
                 </VStack>

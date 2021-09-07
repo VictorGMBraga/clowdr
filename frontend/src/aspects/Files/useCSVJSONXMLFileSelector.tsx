@@ -218,7 +218,14 @@ export default function useCSVJSONXMLFileSelector(): {
         () => ({
             acceptedFiles: outputAcceptedFiles,
             component: (
-                <Box maxW={600} borderWidth={2} borderStyle="dashed" borderColor={borderColour} borderRadius={5}>
+                <Box
+                    flex="1 1 100%"
+                    maxW={600}
+                    borderWidth={2}
+                    borderStyle="dashed"
+                    borderColor={borderColour}
+                    borderRadius={5}
+                >
                     <Box
                         {...getRootProps({ className: "dropzone" })}
                         cursor={acceptedFiles === null ? "not-allowed" : "pointer"}

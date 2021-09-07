@@ -25,13 +25,13 @@ export default function ImportContent(): JSX.Element {
             <Heading as="h1" fontSize="2.3rem" lineHeight="3rem" mt={4}>
                 Import Content for {conference.shortName}
             </Heading>
-            <HStack justifyContent="center" alignItems="flex-start" w="100%" spacing={4}>
-                <VStack spacing={10}>
+            <VStack spacing={10} w="100%" overflow="hidden">
+                <HStack w="100%" spacing={4}>
                     <DataPanel onData={setData} />
-                    <Process data={data} />
-                </VStack>
-                <Explanation />
-            </HStack>
+                    <Explanation />
+                </HStack>
+                <Process data={data} />
+            </VStack>
         </RequireAtLeastOnePermissionWrapper>
     );
 }

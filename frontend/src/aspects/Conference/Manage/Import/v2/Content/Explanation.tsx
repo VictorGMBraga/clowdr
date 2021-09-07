@@ -17,7 +17,7 @@ import React from "react";
 
 export default function Explanation(): JSX.Element {
     return (
-        <VStack w="100%" maxW="container.sm" spacing={6}>
+        <VStack flex="0 0 30em" maxW="container.sm" spacing={6}>
             <Heading as="h2" fontSize="xl" textAlign="left" alignSelf="flex-start">
                 Instructions
             </Heading>
