@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { ElementBaseTypes, ElementBlob, ElementDataBlob } from "@clowdr-app/shared-types/build/content";
 import { v4 as uuidv4 } from "uuid";
 import type {
     ImportContent_ExhibitionFragment,
@@ -631,8 +632,248 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                 }
             }
 
-            // TODO:
-            // elements
+            if (newItemData.elements) {
+                if ("error" in newItemData.elements) {
+                    resultItemData.elements = newItemData.elements;
+                } else if (!resultItemData.elements || !("error" in resultItemData.elements)) {
+                    resultItemData.elements = resultItemData.elements ?? [];
+
+                    for (const newElement of newItemData.elements) {
+                        if (newElement.id && typeof newElement.id !== "string") {
+                            resultItemData.elements.push(newElement.id);
+                        } else if (newElement.hidden !== undefined && typeof newElement.hidden !== "boolean") {
+                            resultItemData.elements.push(newElement.hidden);
+                        } else if (newElement.latestVersion !== undefined && "error" in newElement.latestVersion) {
+                            resultItemData.elements.push(newElement.latestVersion);
+                        } else if (newElement.layout !== undefined && "error" in newElement.layout) {
+                            resultItemData.elements.push(newElement.layout);
+                        } else if (newElement.name !== undefined && typeof newElement.name !== "string") {
+                            resultItemData.elements.push(newElement.name);
+                        } else if (newElement.typeName !== undefined && typeof newElement.typeName !== "string") {
+                            resultItemData.elements.push(newElement.typeName);
+                        } else if (newElement.uploaders !== undefined && "error" in newElement.uploaders) {
+                            resultItemData.elements.push(newElement.uploaders);
+                        } else if (
+                            newElement.uploadsRemaining !== undefined &&
+                            typeof newElement.uploadsRemaining !== "number"
+                        ) {
+                            resultItemData.elements.push(newElement.uploadsRemaining);
+                        } else if (newElement.typeName) {
+                            let added = false;
+
+                            for (const oldElement of resultItemData.elements) {
+                                if (!("error" in oldElement)) {
+                                    if (
+                                        (oldElement.id && newElement.id && oldElement.id === newElement.id) ||
+                                        (oldElement.name && newElement.name && oldElement.name === newElement.name)
+                                    ) {
+                                        added = true;
+                                        if (newElement.name) {
+                                            if (!oldElement.name || typeof oldElement.name === "string") {
+                                                oldElement.name = createUpdate(oldElement.name, newElement.name);
+                                            }
+                                        }
+                                        if (newElement.typeName) {
+                                            if (!oldElement.typeName || typeof oldElement.typeName === "string") {
+                                                oldElement.typeName = createUpdate(
+                                                    oldElement.typeName,
+                                                    newElement.typeName
+                                                );
+                                            }
+                                        }
+                                        if (newElement.hidden !== undefined) {
+                                            if (
+                                                oldElement.isHidden === undefined ||
+                                                typeof oldElement.isHidden === "boolean"
+                                            ) {
+                                                oldElement.isHidden = createUpdate(
+                                                    oldElement.isHidden,
+                                                    newElement.hidden
+                                                );
+                                            }
+                                        }
+                                        if (newElement.uploadsRemaining !== undefined) {
+                                            if (
+                                                oldElement.uploadsRemaining === undefined ||
+                                                typeof oldElement.uploadsRemaining === "number"
+                                            ) {
+                                                oldElement.uploadsRemaining = createUpdate(
+                                                    oldElement.uploadsRemaining,
+                                                    newElement.uploadsRemaining
+                                                );
+                                            }
+                                        }
+                                        if (newElement.layout) {
+                                            if (!oldElement.layoutData || !("error" in oldElement.layoutData)) {
+                                                oldElement.layoutData = createUpdate(
+                                                    oldElement.layoutData,
+                                                    newElement.layout
+                                                );
+                                            }
+                                        }
+                                        if (newElement.latestVersion) {
+                                            if (!oldElement.data || !("error" in oldElement.data)) {
+                                                oldElement.data = createUpdate(
+                                                    oldElement.data,
+                                                    "error" in newElement.latestVersion
+                                                        ? newElement.latestVersion
+                                                        : [newElement.latestVersion]
+                                                );
+                                            }
+                                        }
+                                        if (newElement.uploaders) {
+                                            oldElement.uploaders = oldElement.uploaders ?? [];
+                                            if (!("error" in oldElement.uploaders)) {
+                                                for (const newUploader of newElement.uploaders) {
+                                                    if (!newUploader.name) {
+                                                        oldElement.uploaders.push({
+                                                            error: "No name provided for uploader",
+                                                            rawValue: JSON.stringify(newUploader),
+                                                        });
+                                                    } else if (typeof newUploader.name !== "string") {
+                                                        oldElement.uploaders.push(newUploader.name);
+                                                    } else if (!newUploader.email) {
+                                                        oldElement.uploaders.push({
+                                                            error: "No email provided for uploader",
+                                                            rawValue: JSON.stringify(newUploader),
+                                                        });
+                                                    } else if (typeof newUploader.email !== "string") {
+                                                        oldElement.uploaders.push(newUploader.email);
+                                                    } else {
+                                                        let added = false;
+
+                                                        for (const oldUploader of oldElement.uploaders) {
+                                                            if (!("error" in oldUploader)) {
+                                                                if (
+                                                                    oldUploader.email &&
+                                                                    oldUploader.email === newUploader.email
+                                                                ) {
+                                                                    added = true;
+                                                                    if (
+                                                                        !oldUploader.name ||
+                                                                        typeof oldUploader.name === "string"
+                                                                    ) {
+                                                                        oldUploader.name = createUpdate(
+                                                                            oldUploader.name,
+                                                                            newUploader.name
+                                                                        );
+                                                                    }
+                                                                    break;
+                                                                } else if (
+                                                                    oldUploader.name &&
+                                                                    oldUploader.name === newUploader.name
+                                                                ) {
+                                                                    added = true;
+                                                                    if (
+                                                                        !oldUploader.email ||
+                                                                        typeof oldUploader.email === "string"
+                                                                    ) {
+                                                                        oldUploader.email = createUpdate(
+                                                                            oldUploader.email,
+                                                                            newUploader.email
+                                                                        );
+                                                                    }
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if (!added) {
+                                                            oldElement.uploaders.push({
+                                                                id: { new: uuidv4() },
+                                                                name: newUploader.name,
+                                                                email: newUploader.email,
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!added) {
+                                const newElementInnerData: ElementDataBlob | ErrorInfo = newElement.latestVersion
+                                    ? newElement.latestVersion.data
+                                        ? "error" in newElement.latestVersion.data
+                                            ? newElement.latestVersion.data
+                                            : [
+                                                  {
+                                                      createdAt: (newElement.latestVersion.createdAt
+                                                          ? "error" in newElement.latestVersion.createdAt
+                                                              ? new Date()
+                                                              : newElement.latestVersion.createdAt
+                                                          : new Date()
+                                                      ).getTime(),
+                                                      createdBy: newElement.latestVersion.createdBy
+                                                          ? typeof newElement.latestVersion.createdBy !== "string"
+                                                              ? "importer"
+                                                              : newElement.latestVersion.createdBy
+                                                          : "importer",
+                                                      data:
+                                                          "altText" in newElement.latestVersion.data
+                                                              ? ({
+                                                                    type: newElement.typeName,
+                                                                    baseType: ElementBaseTypes[newElement.typeName],
+                                                                    s3Url: newElement.latestVersion.data.s3Url,
+                                                                    altText: newElement.latestVersion.data.altText,
+                                                                } as ElementBlob)
+                                                              : "title" in newElement.latestVersion.data
+                                                              ? ({
+                                                                    type: newElement.typeName,
+                                                                    baseType: ElementBaseTypes[newElement.typeName],
+                                                                    url: newElement.latestVersion.data.url,
+                                                                    title: newElement.latestVersion.data.title,
+                                                                } as ElementBlob)
+                                                              : "url" in newElement.latestVersion.data
+                                                              ? ({
+                                                                    type: newElement.typeName,
+                                                                    baseType: ElementBaseTypes[newElement.typeName],
+                                                                    url: newElement.latestVersion.data.url,
+                                                                    text: newElement.latestVersion.data.text,
+                                                                } as ElementBlob)
+                                                              : "text" in newElement.latestVersion.data
+                                                              ? ({
+                                                                    type: newElement.typeName,
+                                                                    baseType: ElementBaseTypes[newElement.typeName],
+                                                                    text: newElement.latestVersion.data.text,
+                                                                } as ElementBlob)
+                                                              : ({
+                                                                    type: newElement.typeName,
+                                                                    baseType: ElementBaseTypes[newElement.typeName],
+                                                                    s3Url: newElement.latestVersion.data.s3Url,
+                                                                    subtitles: newElement.latestVersion.data.subtitles,
+                                                                    // Do we ever want to make use of the "fullData" property?
+                                                                } as ElementBlob),
+                                                  },
+                                              ]
+                                        : []
+                                    : [];
+
+                                resultItemData.elements.push({
+                                    id: {
+                                        new: newElement.id ?? uuidv4(),
+                                    },
+                                    name: newElement.name,
+                                    typeName: newElement.typeName,
+                                    isHidden: newElement.hidden,
+                                    uploadsRemaining: newElement.uploadsRemaining,
+                                    uploaders:
+                                        newElement.uploaders?.map((uploader) => ({
+                                            id: { new: uuidv4() },
+                                            name: uploader.name,
+                                            email: uploader.email,
+                                        })) ?? [],
+
+                                    data: newElementInnerData,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (resultItemData) {

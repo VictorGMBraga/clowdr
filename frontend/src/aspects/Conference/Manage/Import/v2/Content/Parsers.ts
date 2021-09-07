@@ -229,7 +229,10 @@ export function parseElement(data: any, baseName: string): Content_Element_Impor
     }
 
     if (data[`${baseName}: Uploads Remaining`]?.length) {
-        result.uploadsRemaining = parseInt(data[`${baseName}: Uploads Remaining`]);
+        result.uploadsRemaining =
+            data[`${baseName}: Uploads Remaining`].toLowerCase() === "unlimited"
+                ? undefined
+                : parseInt(data[`${baseName}: Uploads Remaining`], 10);
     }
 
     if (data[`${baseName}: Is Hidden`]?.length) {
