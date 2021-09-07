@@ -302,12 +302,12 @@ export function parseItem(data: any): Content_ImportStructure {
     }
     if (data["Exhibition Ids"]?.length) {
         const ids = parseNonEscapedList(data["Exhibition Ids"]);
-        if (ids.every((id) => uuid.validate(id.includes(":") ? id.split(":")[1] : id))) {
+        if (ids.every((id) => uuid.validate(id.includes(":") ? id.split(":")[1].trim() : id))) {
             result.exhibitionIds = ids.map((id) => {
                 const parts = id.includes(":") ? id.split(":") : ["100", id];
                 return {
                     priority: parseInt(parts[0], 10),
-                    id: parts[1],
+                    id: parts[1].trim(),
                 };
             });
         } else {
