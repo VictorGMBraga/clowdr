@@ -344,7 +344,7 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                       rooms: [...oldItemData.rooms],
                       elements: oldItemData.elements.map((element) => ({
                           ...element,
-                          uploaders: [...element.uploaders],
+                          uploaders: element.uploaders.map((uploader) => ({ ...uploader })),
                       })),
                   }
             : { id: { new: uuidv4() } };
