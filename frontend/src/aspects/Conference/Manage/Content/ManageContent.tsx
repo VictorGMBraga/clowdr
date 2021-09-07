@@ -919,120 +919,158 @@ export default function ManageContentV2(): JSX.Element {
                             itemIds: dataToExport.map((x) => x.id),
                         });
 
-                        const csvText = Papa.unparse(
-                            contentForExport.data.content_Item.map((item) => {
-                                const result: any = {
-                                    "Conference Id": item.conferenceId,
-                                    "Content Id": item.id,
-                                    "Externally Sourced Data Ids": item.originatingData?.sourceId ?? "",
+                        const exportableColumns = new Set<string>([
+                            "Conference Id",
+                            "Content Id",
+                            "Externally Sourced Data Ids",
+                            "Title",
+                            "Short Title",
+                            "Type",
+                            "Tag Ids",
+                            "Tag Names",
+                            "Exhibition Ids",
+                            "Exhibition Names",
+                            "Discussion Room Ids",
+                            "Chat Id",
+                            "People",
+                        ]);
+                        const exportableData = contentForExport.data.content_Item.map((item) => {
+                            const result: any = {
+                                "Conference Id": item.conferenceId,
+                                "Content Id": item.id,
+                                "Externally Sourced Data Ids": item.originatingData?.sourceId ?? "",
 
-                                    Title: item.title,
-                                    "Short Title": item.shortTitle ?? "",
-                                    Type: item.typeName,
-                                    "Tag Ids": item.itemTags.map((itemTag) => itemTag.tagId),
-                                    "Tag Names": escapeArrayForExport(
-                                        item.itemTags.map(
-                                            (itemTag) =>
-                                                allTags?.collection_Tag.find((tag) => tag.id === itemTag.tagId)?.name ??
-                                                "!!Unknown!!"
-                                        )
-                                    ),
-                                    "Exhibition Ids": item.itemExhibitions.map(
-                                        (itemExh) => `${itemExh.priority ?? "N"}: ${itemExh.exhibitionId}`
-                                    ),
-                                    "Exhibition Names": escapeArrayForExport(
-                                        item.itemExhibitions.map(
-                                            (itemExh) =>
-                                                allExhibitions?.collection_Exhibition.find(
-                                                    (exh) => exh.id === itemExh.exhibitionId
-                                                )?.name ?? "!!Unknown!!"
-                                        )
-                                    ),
-                                    "Discussion Room Ids": item.rooms.map((room) => room.id),
-                                    "Chat Id": item.chatId ?? "",
+                                Title: item.title,
+                                "Short Title": item.shortTitle ?? "",
+                                Type: item.typeName,
+                                "Tag Ids": item.itemTags.map((itemTag) => itemTag.tagId),
+                                "Tag Names": escapeArrayForExport(
+                                    item.itemTags.map(
+                                        (itemTag) =>
+                                            allTags?.collection_Tag.find((tag) => tag.id === itemTag.tagId)?.name ??
+                                            "!!Unknown!!"
+                                    )
+                                ),
+                                "Exhibition Ids": item.itemExhibitions.map(
+                                    (itemExh) => `${itemExh.priority ?? "N"}: ${itemExh.exhibitionId}`
+                                ),
+                                "Exhibition Names": escapeArrayForExport(
+                                    item.itemExhibitions.map(
+                                        (itemExh) =>
+                                            allExhibitions?.collection_Exhibition.find(
+                                                (exh) => exh.id === itemExh.exhibitionId
+                                            )?.name ?? "!!Unknown!!"
+                                    )
+                                ),
+                                "Discussion Room Ids": item.rooms.map((room) => room.id),
+                                "Chat Id": item.chatId ?? "",
 
-                                    People: escapeArrayForExport(
-                                        item.itemPeople.map(
-                                            (itemPerson) =>
-                                                `${itemPerson.priority ?? "N"}: ${itemPerson.person.id} (${
-                                                    itemPerson.roleName
-                                                }) [${itemPerson.person.name
-                                                    .replace(/[(<]/g, "[")
-                                                    .replace(/[)>]/g, "]")} (${
-                                                    itemPerson.person.affiliation?.length
-                                                        ? itemPerson.person.affiliation
-                                                        : "No affiliation"
-                                                }) <${itemPerson.person.email ?? "No email"}>]`
-                                        )
-                                    ),
-                                };
+                                People: escapeArrayForExport(
+                                    item.itemPeople.map(
+                                        (itemPerson) =>
+                                            `${itemPerson.priority ?? "N"}: ${itemPerson.person.id} (${
+                                                itemPerson.roleName
+                                            }) [${itemPerson.person.name
+                                                .replace(/[(<]/g, "[")
+                                                .replace(/[)>]/g, "]")} (${
+                                                itemPerson.person.affiliation?.length
+                                                    ? itemPerson.person.affiliation
+                                                    : "No affiliation"
+                                            }) <${itemPerson.person.email ?? "No email"}>]`
+                                    )
+                                ),
+                            };
 
-                                for (let idx = 0; idx < item.elements.length; idx++) {
-                                    const baseName = `Element ${idx}`;
-                                    const element = item.elements[idx];
-                                    result[`${baseName}: Id`] = element.id;
-                                    result[`${baseName}: Name`] = element.name;
-                                    result[`${baseName}: Type`] = element.typeName;
-                                    const elData = element.data as ElementDataBlob;
-                                    if (elData.length > 0) {
-                                        const latestVersion: ElementVersionData = elData[elData.length - 1];
-                                        const latestData: ElementBlob = latestVersion.data;
-                                        result[`${baseName}: Latest Version: Created At`] = new Date(
-                                            latestVersion.createdAt
-                                        ).toISOString();
-                                        result[`${baseName}: Latest Version: Created By`] = latestVersion.createdBy;
+                            for (let idx = 0; idx < item.elements.length; idx++) {
+                                const baseName = `Element ${idx}`;
+                                const element = item.elements[idx];
+                                result[`${baseName}: Id`] = element.id;
+                                exportableColumns.add(`${baseName}: Id`);
+                                result[`${baseName}: Name`] = element.name;
+                                exportableColumns.add(`${baseName}: Name`);
+                                result[`${baseName}: Type`] = element.typeName;
+                                exportableColumns.add(`${baseName}: Type`);
 
-                                        switch (latestData.baseType) {
-                                            case ElementBaseType.Component:
-                                                result[`${baseName}: Latest Version: Data`] = "";
-                                                break;
-                                            case ElementBaseType.File:
-                                                result[`${baseName}: Latest Version: S3 URL`] = latestData.s3Url;
-                                                result[`${baseName}: Latest Version: Alt Text`] =
-                                                    latestData.altText ?? "";
-                                                break;
-                                            case ElementBaseType.Link:
-                                                result[`${baseName}: Latest Version: Text`] = latestData.text;
-                                                result[`${baseName}: Latest Version: URL`] = latestData.url;
-                                                break;
-                                            case ElementBaseType.Text:
-                                                result[`${baseName}: Latest Version: Text`] = latestData.text;
-                                                break;
-                                            case ElementBaseType.URL:
-                                                result[`${baseName}: Latest Version: URL`] = latestData.url;
-                                                result[`${baseName}: Latest Version: Title`] = latestData.title ?? "";
-                                                break;
-                                            case ElementBaseType.Video:
-                                            case ElementBaseType.Audio:
-                                                result[`${baseName}: Latest Version: A/V: S3 URL`] = latestData.s3Url;
-                                                result[`${baseName}: Latest Version: A/V: Subtitles`] = JSON.stringify(
-                                                    latestData.subtitles
-                                                );
-                                                result[`${baseName}: Latest Version: A/V: Full Data`] =
-                                                    JSON.stringify(latestData);
-                                                break;
-                                        }
+                                const elData = element.data as ElementDataBlob;
+                                if (elData.length > 0) {
+                                    const latestVersion: ElementVersionData = elData[elData.length - 1];
+                                    const latestData: ElementBlob = latestVersion.data;
+                                    result[`${baseName}: Latest Version: Created At`] = new Date(
+                                        latestVersion.createdAt
+                                    ).toISOString();
+                                    exportableColumns.add(`${baseName}: Latest Version: Created At`);
+                                    result[`${baseName}: Latest Version: Created By`] = latestVersion.createdBy;
+                                    exportableColumns.add(`${baseName}: Latest Version: Created By`);
+
+                                    switch (latestData.baseType) {
+                                        case ElementBaseType.Component:
+                                            result[`${baseName}: Latest Version: Data`] = "";
+                                            exportableColumns.add(`${baseName}: Latest Version: Data`);
+                                            break;
+                                        case ElementBaseType.File:
+                                            result[`${baseName}: Latest Version: S3 URL`] = latestData.s3Url;
+                                            result[`${baseName}: Latest Version: Alt Text`] = latestData.altText ?? "";
+                                            exportableColumns.add(`${baseName}: Latest Version: S3 URL`);
+                                            exportableColumns.add(`${baseName}: Latest Version: Alt Text`);
+                                            break;
+                                        case ElementBaseType.Link:
+                                            result[`${baseName}: Latest Version: Text`] = latestData.text;
+                                            result[`${baseName}: Latest Version: URL`] = latestData.url;
+                                            exportableColumns.add(`${baseName}: Latest Version: Text`);
+                                            exportableColumns.add(`${baseName}: Latest Version: URL`);
+                                            break;
+                                        case ElementBaseType.Text:
+                                            result[`${baseName}: Latest Version: Text`] = latestData.text;
+                                            exportableColumns.add(`${baseName}: Latest Version: Text`);
+                                            break;
+                                        case ElementBaseType.URL:
+                                            result[`${baseName}: Latest Version: URL`] = latestData.url;
+                                            result[`${baseName}: Latest Version: Title`] = latestData.title ?? "";
+                                            exportableColumns.add(`${baseName}: Latest Version: URL`);
+                                            exportableColumns.add(`${baseName}: Latest Version: Title`);
+                                            break;
+                                        case ElementBaseType.Video:
+                                        case ElementBaseType.Audio:
+                                            result[`${baseName}: Latest Version: A/V: S3 URL`] = latestData.s3Url;
+                                            result[`${baseName}: Latest Version: A/V: Subtitles`] = JSON.stringify(
+                                                latestData.subtitles
+                                            );
+                                            result[`${baseName}: Latest Version: A/V: Full Data`] =
+                                                JSON.stringify(latestData);
+                                            exportableColumns.add(`${baseName}: Latest Version: A/V: S3 URL`);
+                                            exportableColumns.add(`${baseName}: Latest Version: A/V: Subtitles`);
+                                            exportableColumns.add(`${baseName}: Latest Version: A/V: Full Data`);
+                                            break;
                                     }
-                                    if (element.layoutData) {
-                                        const layoutData: LayoutDataBlob = element.layoutData;
-                                        result[`${baseName}: Layout: Is Hidden`] = layoutData.hidden;
-                                        result[`${baseName}: Layout: Priority`] = layoutData.priority;
-                                        result[`${baseName}: Layout: Is Wide`] = layoutData.wide;
-                                    }
-                                    result[`${baseName}: Uploads Remaining`] = element.uploadsRemaining ?? "Unlimited";
-                                    result[`${baseName}: Is Hidden`] = element.isHidden ? "Yes" : "No";
-                                    result[`${baseName}: Updated At`] = element.updatedAt;
-                                    result[`${baseName}: Uploaders`] = escapeArrayForExport(
-                                        element.uploaders.map(
-                                            (uploader) =>
-                                                `${uploader.name} <${uploader.email}> (Emails sent: ${uploader.emailsSentCount})`
-                                        )
-                                    );
                                 }
+                                if (element.layoutData) {
+                                    const layoutData: LayoutDataBlob = element.layoutData;
+                                    result[`${baseName}: Layout: Is Hidden`] = layoutData.hidden;
+                                    result[`${baseName}: Layout: Priority`] = layoutData.priority;
+                                    result[`${baseName}: Layout: Is Wide`] = layoutData.wide;
 
-                                return result;
-                            })
-                        );
+                                    exportableColumns.add(`${baseName}: Layout: Is Hidden`);
+                                    exportableColumns.add(`${baseName}: Layout: Priority`);
+                                    exportableColumns.add(`${baseName}: Layout: Is Wide`);
+                                }
+                                result[`${baseName}: Uploads Remaining`] = element.uploadsRemaining ?? "Unlimited";
+                                exportableColumns.add(`${baseName}: Uploads Remaining`);
+                                result[`${baseName}: Is Hidden`] = element.isHidden ? "Yes" : "No";
+                                exportableColumns.add(`${baseName}: Is Hidden`);
+                                result[`${baseName}: Updated At`] = element.updatedAt;
+                                exportableColumns.add(`${baseName}: Updated At`);
+                                result[`${baseName}: Uploaders`] = escapeArrayForExport(
+                                    element.uploaders.map(
+                                        (uploader) =>
+                                            `${uploader.name} <${uploader.email}> (Emails sent: ${uploader.emailsSentCount})`
+                                    )
+                                );
+                                exportableColumns.add(`${baseName}: Uploaders`);
+                            }
+
+                            return result;
+                        });
+                        const csvText = Papa.unparse(exportableData, { columns: [...exportableColumns] });
 
                         const csvData = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
                         let csvURL: string | null = null;
