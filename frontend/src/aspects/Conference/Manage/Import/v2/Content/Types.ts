@@ -20,35 +20,37 @@ export type Content_ImportStructure = PartialOrError<{
     elements: Content_Element_ImportStructure[];
 }>;
 
+export type Content_Element_LatestVersion_ImportStructure = PartialOrError<{
+    createdAt: Date;
+    createdBy: string;
+    data:
+        | {
+              altText: string;
+              s3Url: string;
+          }
+        | {
+              title: string;
+              url: string;
+          }
+        | {
+              text: string;
+              url: string;
+          }
+        | {
+              text: string;
+          }
+        | {
+              s3Url: string;
+              subtitles: any;
+              fullData: any;
+          };
+}>;
+
 export type Content_Element_ImportStructure = PartialOrError<{
     id: string;
     name: string;
     typeName: Content_ElementType_Enum;
-    latestVersion: PartialOrError<{
-        createdAt: Date;
-        createdBy: string;
-        data:
-            | {
-                  altText: string;
-                  s3Url: string;
-              }
-            | {
-                  title: string;
-                  url: string;
-              }
-            | {
-                  text: string;
-                  url: string;
-              }
-            | {
-                  text: string;
-              }
-            | {
-                  s3Url: string;
-                  subtitles: any;
-                  fullData: any;
-              };
-    }>;
+    latestVersion: Content_Element_LatestVersion_ImportStructure;
     layout: PartialOrError<{
         hidden: boolean;
         priority: number;

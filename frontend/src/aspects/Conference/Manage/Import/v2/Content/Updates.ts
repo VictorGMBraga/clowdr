@@ -1,14 +1,21 @@
 import { gql } from "@apollo/client";
-import { ElementBaseTypes, ElementBlob, ElementDataBlob } from "@clowdr-app/shared-types/build/content";
+import {
+    ElementBaseTypes,
+    ElementBlob,
+    ElementDataBlob,
+    ElementVersionData,
+} from "@clowdr-app/shared-types/build/content";
+import assert from "assert";
 import { v4 as uuidv4 } from "uuid";
 import type {
+    Content_ElementType_Enum,
     ImportContent_ExhibitionFragment,
     ImportContent_ItemFragment,
     ImportContent_ProgramPersonFragment,
     ImportContent_TagFragment,
 } from "../../../../../../generated/graphql";
 import { createUpdate, ErrorInfo, Updates } from "../Types";
-import type { Content_ImportStructure } from "./Types";
+import type { Content_Element_LatestVersion_ImportStructure, Content_ImportStructure } from "./Types";
 
 gql`
     ## Items
@@ -192,6 +199,62 @@ export type Content_UpdatesDbData = {
     tags: Map<string, Updates<ImportContent_TagFragment> | ErrorInfo>;
     exhibitions: Map<string, Updates<ImportContent_ExhibitionFragment> | ErrorInfo>;
 };
+
+function convertElementData(
+    newElementTypeName: Content_ElementType_Enum,
+    newElementLatestVersion: Content_Element_LatestVersion_ImportStructure
+): ElementVersionData {
+    assert(newElementLatestVersion.data);
+    assert(!("error" in newElementLatestVersion.data));
+    return {
+        createdAt: (newElementLatestVersion.createdAt
+            ? "error" in newElementLatestVersion.createdAt
+                ? new Date()
+                : newElementLatestVersion.createdAt
+            : new Date()
+        ).getTime(),
+        createdBy: newElementLatestVersion.createdBy
+            ? typeof newElementLatestVersion.createdBy !== "string"
+                ? "importer"
+                : newElementLatestVersion.createdBy
+            : "importer",
+        data:
+            "altText" in newElementLatestVersion.data
+                ? ({
+                      type: newElementTypeName,
+                      baseType: ElementBaseTypes[newElementTypeName],
+                      s3Url: newElementLatestVersion.data.s3Url,
+                      altText: newElementLatestVersion.data.altText,
+                  } as ElementBlob)
+                : "title" in newElementLatestVersion.data
+                ? ({
+                      type: newElementTypeName,
+                      baseType: ElementBaseTypes[newElementTypeName],
+                      url: newElementLatestVersion.data.url,
+                      title: newElementLatestVersion.data.title,
+                  } as ElementBlob)
+                : "url" in newElementLatestVersion.data
+                ? ({
+                      type: newElementTypeName,
+                      baseType: ElementBaseTypes[newElementTypeName],
+                      url: newElementLatestVersion.data.url,
+                      text: newElementLatestVersion.data.text,
+                  } as ElementBlob)
+                : "text" in newElementLatestVersion.data
+                ? ({
+                      type: newElementTypeName,
+                      baseType: ElementBaseTypes[newElementTypeName],
+                      text: newElementLatestVersion.data.text,
+                  } as ElementBlob)
+                : ({
+                      type: newElementTypeName,
+                      baseType: ElementBaseTypes[newElementTypeName],
+                      s3Url: newElementLatestVersion.data.s3Url,
+                      subtitles: newElementLatestVersion.data.subtitles,
+                      // Do we ever want to make use of the "fullData" property?
+                  } as ElementBlob),
+    };
+}
 
 export function computeUpdates(oldData: Content_DbData, newData: Content_ImportStructure[]): Content_UpdatesDbData {
     const result: Content_UpdatesDbData = {
@@ -658,7 +721,12 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                             typeof newElement.uploadsRemaining !== "number"
                         ) {
                             resultItemData.elements.push(newElement.uploadsRemaining);
-                        } else if (newElement.typeName) {
+                        } else if (!newElement.typeName) {
+                            resultItemData.elements.push({
+                                error: "No element type provided!",
+                                rawValue: JSON.stringify(newElement),
+                            });
+                        } else {
                             let added = false;
 
                             for (const oldElement of resultItemData.elements) {
@@ -717,7 +785,12 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                                     oldElement.data,
                                                     "error" in newElement.latestVersion
                                                         ? newElement.latestVersion
-                                                        : [newElement.latestVersion]
+                                                        : [
+                                                              convertElementData(
+                                                                  newElement.typeName,
+                                                                  newElement.latestVersion
+                                                              ),
+                                                          ]
                                                 );
                                             }
                                         }
@@ -799,56 +872,7 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                     ? newElement.latestVersion.data
                                         ? "error" in newElement.latestVersion.data
                                             ? newElement.latestVersion.data
-                                            : [
-                                                  {
-                                                      createdAt: (newElement.latestVersion.createdAt
-                                                          ? "error" in newElement.latestVersion.createdAt
-                                                              ? new Date()
-                                                              : newElement.latestVersion.createdAt
-                                                          : new Date()
-                                                      ).getTime(),
-                                                      createdBy: newElement.latestVersion.createdBy
-                                                          ? typeof newElement.latestVersion.createdBy !== "string"
-                                                              ? "importer"
-                                                              : newElement.latestVersion.createdBy
-                                                          : "importer",
-                                                      data:
-                                                          "altText" in newElement.latestVersion.data
-                                                              ? ({
-                                                                    type: newElement.typeName,
-                                                                    baseType: ElementBaseTypes[newElement.typeName],
-                                                                    s3Url: newElement.latestVersion.data.s3Url,
-                                                                    altText: newElement.latestVersion.data.altText,
-                                                                } as ElementBlob)
-                                                              : "title" in newElement.latestVersion.data
-                                                              ? ({
-                                                                    type: newElement.typeName,
-                                                                    baseType: ElementBaseTypes[newElement.typeName],
-                                                                    url: newElement.latestVersion.data.url,
-                                                                    title: newElement.latestVersion.data.title,
-                                                                } as ElementBlob)
-                                                              : "url" in newElement.latestVersion.data
-                                                              ? ({
-                                                                    type: newElement.typeName,
-                                                                    baseType: ElementBaseTypes[newElement.typeName],
-                                                                    url: newElement.latestVersion.data.url,
-                                                                    text: newElement.latestVersion.data.text,
-                                                                } as ElementBlob)
-                                                              : "text" in newElement.latestVersion.data
-                                                              ? ({
-                                                                    type: newElement.typeName,
-                                                                    baseType: ElementBaseTypes[newElement.typeName],
-                                                                    text: newElement.latestVersion.data.text,
-                                                                } as ElementBlob)
-                                                              : ({
-                                                                    type: newElement.typeName,
-                                                                    baseType: ElementBaseTypes[newElement.typeName],
-                                                                    s3Url: newElement.latestVersion.data.s3Url,
-                                                                    subtitles: newElement.latestVersion.data.subtitles,
-                                                                    // Do we ever want to make use of the "fullData" property?
-                                                                } as ElementBlob),
-                                                  },
-                                              ]
+                                            : [convertElementData(newElement.typeName, newElement.latestVersion)]
                                         : []
                                     : [];
 
