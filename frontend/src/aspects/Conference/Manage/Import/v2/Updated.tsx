@@ -134,7 +134,7 @@ function UpdatedCell<K extends string | number | symbol, T>(
     return {
         columnName,
         el:
-            !!update && update instanceof Array ? (
+            !!update && update instanceof Array && columns ? (
                 contents
             ) : (
                 <Td

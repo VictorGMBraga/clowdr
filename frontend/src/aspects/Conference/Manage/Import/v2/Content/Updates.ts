@@ -775,7 +775,12 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                             if (!oldElement.layoutData || !("error" in oldElement.layoutData)) {
                                                 oldElement.layoutData = createUpdate(
                                                     oldElement.layoutData,
-                                                    newElement.layout
+                                                    "error" in newElement.layout
+                                                        ? newElement.layout
+                                                        : {
+                                                              ...newElement.layout,
+                                                              contentType: newElement.typeName,
+                                                          }
                                                 );
                                             }
                                         }

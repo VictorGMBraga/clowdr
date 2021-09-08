@@ -41,7 +41,11 @@ export function createUpdate<T>(
         return oldData;
     }
 
-    return { old: oldData, new: newData };
+    if (oldData !== newData) {
+        return { old: oldData, new: newData };
+    }
+
+    return oldData;
 }
 
 export type RenderableColumns<T> = {
