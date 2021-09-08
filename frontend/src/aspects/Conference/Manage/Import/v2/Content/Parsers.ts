@@ -195,13 +195,19 @@ export function parseElement(data: any, baseName: string): Content_Element_Impor
 
         if (!("error" in result.latestVersion)) {
             result.latestVersion.data = {
-                s3Url: data[`${baseName}: Latest Version: S3 URL`],
+                s3Url: data[`${baseName}: Latest Version: A/V: S3 URL`],
                 subtitles: data[`${baseName}: Latest Version: Subtitles`]?.length
                     ? JSON.parse(data[`${baseName}: Latest Version: Subtitles`])
                     : undefined,
-                fullData: JSON.parse(data[`${baseName}: Latest Version: Full Data`]),
+                fullData: data[`${baseName}: Latest Version: A/V: Full Data`]
+                    ? JSON.parse(data[`${baseName}: Latest Version: A/V: Full Data`])
+                    : undefined,
             };
         }
+    }
+
+    if (result.latestVersion && !("data" in result.latestVersion || "error" in result.latestVersion)) {
+        delete result.latestVersion;
     }
 
     if (data[`${baseName}: Layout: Is Hidden`]?.length) {
