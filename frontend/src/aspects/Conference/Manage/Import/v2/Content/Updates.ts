@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import {
+    ElementBaseType,
     ElementBaseTypes,
     ElementBlob,
     ElementDataBlob,
@@ -7,6 +8,7 @@ import {
 } from "@clowdr-app/shared-types/build/content";
 import assert from "assert";
 import { v4 as uuidv4 } from "uuid";
+import type { LayoutDataBlob } from "../../../../../../../../shared/build/content/layoutData";
 import type {
     Content_ElementType_Enum,
     ImportContent_ExhibitionFragment,
@@ -200,6 +202,127 @@ export type Content_UpdatesDbData = {
     exhibitions: Map<string, Updates<ImportContent_ExhibitionFragment> | ErrorInfo>;
 };
 
+function elementVersionDataEqual(a: ElementBlob, b: ElementBlob): boolean {
+    if (a.type === b.type) {
+        if (a.baseType === b.baseType) {
+            switch (a.baseType) {
+                case ElementBaseType.Audio:
+                    if (
+                        a.baseType === b.baseType &&
+                        a.description === b.description &&
+                        a.s3Url === b.s3Url &&
+                        a.sourceHasEmbeddedSubtitles === b.sourceHasEmbeddedSubtitles
+                    ) {
+                        if (!a.subtitles && !b.subtitles) {
+                            return true;
+                        } else {
+                            for (const key in a.subtitles) {
+                                if (!(key in b.subtitles) || a.subtitles[key] !== b.subtitles[key]) {
+                                    return false;
+                                }
+                            }
+
+                            for (const key in b.subtitles) {
+                                if (!(key in a.subtitles) || a.subtitles[key] !== b.subtitles[key]) {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        }
+                    }
+                    break;
+                case ElementBaseType.Component:
+                    return true;
+                case ElementBaseType.File:
+                    return (
+                        a.baseType === b.baseType &&
+                        (a.altText ?? "") === (b.altText ?? "") &&
+                        (a.s3Url ?? "") === (b.s3Url ?? "")
+                    );
+                case ElementBaseType.Link:
+                    return (
+                        a.baseType === b.baseType &&
+                        (a.text ?? "") === (b.text ?? "") &&
+                        (a.url ?? "") === (b.url ?? "")
+                    );
+                case ElementBaseType.Text:
+                    return a.baseType === b.baseType && (a.text ?? "") === (b.text ?? "");
+                case ElementBaseType.URL:
+                    return (
+                        a.baseType === b.baseType &&
+                        (a.title ?? "") === (b.title ?? "") &&
+                        (a.url ?? "") === (b.url ?? "")
+                    );
+                case ElementBaseType.Video:
+                    if (
+                        a.baseType === b.baseType &&
+                        a.s3Url === b.s3Url &&
+                        a.sourceHasEmbeddedSubtitles === b.sourceHasEmbeddedSubtitles
+                    ) {
+                        if (!!a.subtitles !== !!b.subtitles) {
+                            return false;
+                        }
+                        if (!!a.broadcastTranscode !== !!b.broadcastTranscode) {
+                            return false;
+                        }
+                        if (!!a.transcode !== !!b.transcode) {
+                            return false;
+                        }
+
+                        if (a.subtitles && b.subtitles) {
+                            for (const key in a.subtitles) {
+                                if (!(key in b.subtitles) || a.subtitles[key] !== b.subtitles[key]) {
+                                    return false;
+                                }
+                            }
+
+                            for (const key in b.subtitles) {
+                                if (!(key in a.subtitles) || a.subtitles[key] !== b.subtitles[key]) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        if (a.broadcastTranscode && b.broadcastTranscode) {
+                            if (a.broadcastTranscode.durationSeconds !== b.broadcastTranscode.durationSeconds) {
+                                return false;
+                            }
+                            if (a.broadcastTranscode.s3Url !== b.broadcastTranscode.s3Url) {
+                                return false;
+                            }
+                            if (a.broadcastTranscode.updatedTimestamp !== b.broadcastTranscode.updatedTimestamp) {
+                                return false;
+                            }
+                        }
+
+                        if (a.transcode && b.transcode) {
+                            if (a.transcode.status !== b.transcode.status) {
+                                return false;
+                            }
+                            if (a.transcode.s3Url !== b.transcode.s3Url) {
+                                return false;
+                            }
+                            if (a.transcode.updatedTimestamp !== b.transcode.updatedTimestamp) {
+                                return false;
+                            }
+                            if (a.transcode.jobId !== b.transcode.jobId) {
+                                return false;
+                            }
+                            if (a.transcode.message !== b.transcode.message) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    break;
+            }
+        }
+    }
+    return false;
+}
+
 function convertElementData(
     newElementTypeName: Content_ElementType_Enum,
     newElementLatestVersion: Content_Element_LatestVersion_ImportStructure
@@ -223,34 +346,34 @@ function convertElementData(
                 ? ({
                       type: newElementTypeName,
                       baseType: ElementBaseTypes[newElementTypeName],
-                      s3Url: newElementLatestVersion.data.s3Url,
+                      s3Url: newElementLatestVersion.data.s3Url ?? "",
                       altText: newElementLatestVersion.data.altText,
                   } as ElementBlob)
                 : "title" in newElementLatestVersion.data
                 ? ({
                       type: newElementTypeName,
                       baseType: ElementBaseTypes[newElementTypeName],
-                      url: newElementLatestVersion.data.url,
+                      url: newElementLatestVersion.data.url ?? "",
                       title: newElementLatestVersion.data.title,
                   } as ElementBlob)
                 : "url" in newElementLatestVersion.data
                 ? ({
                       type: newElementTypeName,
                       baseType: ElementBaseTypes[newElementTypeName],
-                      url: newElementLatestVersion.data.url,
-                      text: newElementLatestVersion.data.text,
+                      url: newElementLatestVersion.data.url ?? "",
+                      text: newElementLatestVersion.data.text ?? "",
                   } as ElementBlob)
                 : "text" in newElementLatestVersion.data
                 ? ({
                       type: newElementTypeName,
                       baseType: ElementBaseTypes[newElementTypeName],
-                      text: newElementLatestVersion.data.text,
+                      text: newElementLatestVersion.data.text ?? "",
                   } as ElementBlob)
                 : ({
                       type: newElementTypeName,
                       baseType: ElementBaseTypes[newElementTypeName],
-                      s3Url: newElementLatestVersion.data.s3Url,
-                      subtitles: newElementLatestVersion.data.subtitles,
+                      s3Url: newElementLatestVersion.data.s3Url ?? "",
+                      subtitles: newElementLatestVersion.data.subtitles ?? {},
                       // Do we ever want to make use of the "fullData" property?
                   } as ElementBlob),
     };
@@ -773,20 +896,25 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                         }
                                         if (newElement.layout) {
                                             if (!oldElement.layoutData || !("error" in oldElement.layoutData)) {
-                                                oldElement.layoutData = createUpdate(
+                                                oldElement.layoutData = createUpdate<LayoutDataBlob>(
                                                     oldElement.layoutData,
                                                     "error" in newElement.layout
                                                         ? newElement.layout
-                                                        : {
+                                                        : ({
                                                               ...newElement.layout,
                                                               contentType: newElement.typeName,
-                                                          }
+                                                          } as LayoutDataBlob),
+                                                    (a, b) =>
+                                                        a.contentType === b.contentType &&
+                                                        a.priority === b.priority &&
+                                                        a.hidden === b.hidden &&
+                                                        a.wide === b.wide
                                                 );
                                             }
                                         }
                                         if (newElement.latestVersion) {
                                             if (!oldElement.data || !("error" in oldElement.data)) {
-                                                oldElement.data = createUpdate(
+                                                oldElement.data = createUpdate<ElementDataBlob>(
                                                     oldElement.data,
                                                     "error" in newElement.latestVersion
                                                         ? newElement.latestVersion
@@ -795,7 +923,17 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                                                   newElement.typeName,
                                                                   newElement.latestVersion
                                                               ),
-                                                          ]
+                                                          ],
+                                                    (a, b) =>
+                                                        b.length <= a.length &&
+                                                        (b.length === 0 ||
+                                                            (a[a.length - 1].createdAt === b[b.length - 1].createdAt &&
+                                                                a[a.length - 1].createdBy ===
+                                                                    b[b.length - 1].createdBy &&
+                                                                elementVersionDataEqual(
+                                                                    a[a.length - 1].data,
+                                                                    b[b.length - 1].data
+                                                                )))
                                                 );
                                             }
                                         }
