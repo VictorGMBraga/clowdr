@@ -8,7 +8,7 @@ export type Updates<S> = S extends PartialOrError<infer T> ? _Updates<T> : _Upda
 
 type _Updates<T> = {
     -readonly [K in keyof T]?: T[K] extends ReadonlyArray<infer A> | ErrorInfo | undefined
-        ? Array<_Updates<A> | ErrorInfo> | ErrorInfo
+        ? Array<Updates<A> | ErrorInfo> | ErrorInfo
         :
               | T[K]
               | ErrorInfo
@@ -43,3 +43,9 @@ export function createUpdate<T>(
 
     return { old: oldData, new: newData };
 }
+
+export type RenderableColumns<T> = {
+    [K in keyof T]?: T[K] extends ReadonlyArray<infer S> | ErrorInfo | undefined
+        ? { priority: number; columns: RenderableColumns<S> }
+        : number;
+};
