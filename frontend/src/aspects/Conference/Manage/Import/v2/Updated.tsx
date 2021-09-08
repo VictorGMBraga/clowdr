@@ -150,7 +150,7 @@ function UpdatedCell<K extends string | number | symbol, T>(
             ),
         errored,
         updated,
-        isArray: !!update && update instanceof Array,
+        isArray: !!update && update instanceof Array && !!columns,
     };
 }
 
@@ -218,7 +218,11 @@ export default function Updated<T extends Record<"id", string>>({
                     acc.length === 0 ? part.toUpperCase() : part.match(/[A-Z]/) ? acc + " " + part : acc + part,
                 ""
             );
-            return <th key={columnName as string}>{prettyName}</th>;
+            return (
+                <Th key={columnName as string} textAlign="left">
+                    {prettyName}
+                </Th>
+            );
         });
     const { rowEls, errorCount, newCount, updatedCount } = (() => {
         const result: JSX.Element[] = [];
