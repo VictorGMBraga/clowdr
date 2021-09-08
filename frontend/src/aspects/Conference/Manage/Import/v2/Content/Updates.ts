@@ -512,10 +512,13 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                         }
 
                         if (newTagIds.size > 0) {
-                            resultItemData.itemTags = [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
-                                id: { new: uuidv4() },
-                                tagId,
-                            }));
+                            resultItemData.itemTags = [
+                                ...resultItemData.itemTags,
+                                ...[...newTagIds].map((tagId) => ({
+                                    id: { new: uuidv4() },
+                                    tagId,
+                                })),
+                            ];
                         }
                     }
                 }
@@ -579,10 +582,13 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                         }
 
                         if (newTagIds.size > 0) {
-                            resultItemData.itemTags = [...resultItemData.itemTags, ...newTagIds].map((tagId) => ({
-                                id: { new: uuidv4() },
-                                tagId,
-                            }));
+                            resultItemData.itemTags = [
+                                ...resultItemData.itemTags,
+                                ...[...newTagIds].map((tagId) => ({
+                                    id: { new: uuidv4() },
+                                    tagId,
+                                })),
+                            ];
                         }
                     }
                 }
