@@ -9,12 +9,15 @@ import { useConference } from "../../../../useConference";
 import DataPanel from "../DataPanel";
 import Explanation from "./Explanation";
 import Process from "./Process";
+import Save from "./Save";
+import type { Content_UpdatesDbData } from "./Updates";
 
 export default function ImportContent(): JSX.Element {
     const conference = useConference();
     const title = useTitle(`Import content for ${conference.shortName}`);
 
     const [data, setData] = useState<ParsedData<any[]>[] | undefined>();
+    const [updates, setUpdates] = useState<Content_UpdatesDbData | undefined>();
 
     return (
         <RequireAtLeastOnePermissionWrapper
@@ -30,7 +33,8 @@ export default function ImportContent(): JSX.Element {
                     <DataPanel onData={setData} />
                     <Explanation />
                 </HStack>
-                <Process data={data} />
+                <Process data={data} onUpdates={setUpdates} />
+                <Save updates={updates} />
             </VStack>
         </RequireAtLeastOnePermissionWrapper>
     );

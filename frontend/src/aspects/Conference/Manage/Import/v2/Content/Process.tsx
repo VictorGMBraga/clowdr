@@ -102,7 +102,13 @@ function isNotErrorData(x: any): x is Content_ImportStructure {
     }
 }
 
-export default function Process({ data: files }: { data: ParsedData<any[]>[] | undefined }): JSX.Element {
+export default function Process({
+    data: files,
+    onUpdates,
+}: {
+    data: ParsedData<any[]>[] | undefined;
+    onUpdates: (updates: Content_UpdatesDbData | undefined) => void;
+}): JSX.Element {
     const parsedData = useMemo(
         () =>
             files?.flatMap<
@@ -143,10 +149,11 @@ export default function Process({ data: files }: { data: ParsedData<any[]>[] | u
             };
             const newUpdates = computeUpdates(oldData, availableParsedData);
             setUpdates(newUpdates);
+            onUpdates(newUpdates);
 
             console.log("Updated data", newUpdates);
         }
-    }, [oldDataResponse.data, parsedData]);
+    }, [oldDataResponse.data, parsedData, onUpdates]);
 
     const tagsTable = useMemo(
         () =>
