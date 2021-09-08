@@ -958,38 +958,55 @@ export function computeUpdates(oldData: Content_DbData, newData: Content_ImportS
                                                     } else {
                                                         let added = false;
 
+                                                        // Detect multiple uploaders with the same name/email
                                                         for (const oldUploader of oldElement.uploaders) {
                                                             if (!("error" in oldUploader)) {
                                                                 if (
                                                                     oldUploader.email &&
-                                                                    oldUploader.email === newUploader.email
-                                                                ) {
-                                                                    added = true;
-                                                                    if (
-                                                                        !oldUploader.name ||
-                                                                        typeof oldUploader.name === "string"
-                                                                    ) {
-                                                                        oldUploader.name = createUpdate(
-                                                                            oldUploader.name,
-                                                                            newUploader.name
-                                                                        );
-                                                                    }
-                                                                    break;
-                                                                } else if (
+                                                                    oldUploader.email === newUploader.email &&
                                                                     oldUploader.name &&
                                                                     oldUploader.name === newUploader.name
                                                                 ) {
                                                                     added = true;
-                                                                    if (
-                                                                        !oldUploader.email ||
-                                                                        typeof oldUploader.email === "string"
-                                                                    ) {
-                                                                        oldUploader.email = createUpdate(
-                                                                            oldUploader.email,
-                                                                            newUploader.email
-                                                                        );
-                                                                    }
                                                                     break;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if (!added) {
+                                                            for (const oldUploader of oldElement.uploaders) {
+                                                                if (!("error" in oldUploader)) {
+                                                                    if (
+                                                                        oldUploader.email &&
+                                                                        oldUploader.email === newUploader.email
+                                                                    ) {
+                                                                        added = true;
+                                                                        if (
+                                                                            !oldUploader.name ||
+                                                                            typeof oldUploader.name === "string"
+                                                                        ) {
+                                                                            oldUploader.name = createUpdate(
+                                                                                oldUploader.name,
+                                                                                newUploader.name
+                                                                            );
+                                                                        }
+                                                                        break;
+                                                                    } else if (
+                                                                        oldUploader.name &&
+                                                                        oldUploader.name === newUploader.name
+                                                                    ) {
+                                                                        added = true;
+                                                                        if (
+                                                                            !oldUploader.email ||
+                                                                            typeof oldUploader.email === "string"
+                                                                        ) {
+                                                                            oldUploader.email = createUpdate(
+                                                                                oldUploader.email,
+                                                                                newUploader.email
+                                                                            );
+                                                                        }
+                                                                        break;
+                                                                    }
                                                                 }
                                                             }
                                                         }
