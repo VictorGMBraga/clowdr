@@ -52,29 +52,32 @@ function UpdatedCell<K extends string | number | symbol, T>(
           }
         | ErrorInfo
         | undefined,
+    isNewOverride: boolean,
     columns?: RenderableColumns<Updates<T>>
 ): { columnName: K; el: JSX.Element | undefined; errored: boolean; updated: boolean; isArray: boolean } {
     const { isNew, contents, errored, updated } = (() => {
         if (update === undefined || update === null) {
             return { contents: undefined, errored: false, updated: false };
-        } else if (update instanceof Array && columns) {
-            // If columns is not defined, then this wasn't a nested table
-            // but just a JSON (/jsonb) column that happened to contain an array
-            const prettyName = [...(columnName as string)].reduce(
-                (acc, part) =>
-                    acc.length === 0 ? part.toUpperCase() : part.match(/[A-Z]/) ? acc + " " + part : acc + part,
-                ""
-            );
-            const { el, errorCount, updatedCount, newCount } = Updated({
-                updates: update,
-                columns,
-                tableName: prettyName,
-            });
-            return {
-                contents: el,
-                errored: errorCount > 0,
-                updated: updatedCount > 0 || newCount > 0,
-            };
+        } else if (columns) {
+            if (update instanceof Array) {
+                // If columns is not defined, then this wasn't a nested table
+                // but just a JSON (/jsonb) column that happened to contain an array
+                const prettyName = [...(columnName as string)].reduce(
+                    (acc, part) =>
+                        acc.length === 0 ? part.toUpperCase() : part.match(/[A-Z]/) ? acc + " " + part : acc + part,
+                    ""
+                );
+                const { el, errorCount, updatedCount, newCount } = Updated({
+                    updates: update,
+                    columns,
+                    tableName: prettyName,
+                });
+                return {
+                    contents: el,
+                    errored: errorCount > 0,
+                    updated: updatedCount > 0 || newCount > 0,
+                };
+            }
         } else if (typeof update === "object") {
             if ("error" in update) {
                 return {
@@ -140,7 +143,13 @@ function UpdatedCell<K extends string | number | symbol, T>(
                 <Td
                     key={columnName as string}
                     bgColor={
-                        errored ? errorRowBgColour : isNew ? newRowBgColour : updated ? updatedRowBgColour : undefined
+                        errored
+                            ? errorRowBgColour
+                            : isNew || isNewOverride
+                            ? newRowBgColour
+                            : updated
+                            ? updatedRowBgColour
+                            : undefined
                     }
                     color={errored || updated ? "black" : undefined}
                     borderTop="none"
@@ -150,7 +159,7 @@ function UpdatedCell<K extends string | number | symbol, T>(
             ),
         errored,
         updated,
-        isArray: !!update && update instanceof Array && !!columns,
+        isArray: !!columns,
     };
 }
 
@@ -245,7 +254,12 @@ export default function Updated<T extends Record<"id", string>>({
                     );
                 } else {
                     const columnEls = columnNames.map((columnName) =>
-                        UpdatedCell(columnName, x[columnName], getInnerColumns(columns[columnName]))
+                        UpdatedCell(
+                            columnName,
+                            x[columnName],
+                            "id" in x && !!x.id && typeof x.id !== "string" && "new" in x.id,
+                            getInnerColumns(columns[columnName])
+                        )
                     );
                     columnEls.sort((rowA, rowB) =>
                         rowA.isArray && rowB.isArray
