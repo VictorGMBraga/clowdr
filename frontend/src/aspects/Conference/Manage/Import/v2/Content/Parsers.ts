@@ -208,7 +208,7 @@ export function parseElement(data: any, baseName: string): Content_Element_Impor
         result.layout = result.layout ?? {};
 
         if (!("error" in result.layout)) {
-            result.layout.hidden = data[`${baseName}: Layout: Is Hidden`].toUpperCase() !== "NO";
+            result.layout.hidden = data[`${baseName}: Layout: Is Hidden`].toUpperCase() === "YES";
         }
     }
 

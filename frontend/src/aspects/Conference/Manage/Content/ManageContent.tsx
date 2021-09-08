@@ -1045,9 +1045,10 @@ export default function ManageContentV2(): JSX.Element {
                                 }
                                 if (element.layoutData) {
                                     const layoutData: LayoutDataBlob = element.layoutData;
-                                    result[`${baseName}: Layout: Is Hidden`] = layoutData.hidden;
+                                    result[`${baseName}: Layout: Is Hidden`] = layoutData.hidden ? "Yes" : "No";
                                     result[`${baseName}: Layout: Priority`] = layoutData.priority;
-                                    result[`${baseName}: Layout: Is Wide`] = layoutData.wide;
+                                    result[`${baseName}: Layout: Is Wide`] =
+                                        layoutData.wide === undefined || layoutData.wide ? "Yes" : "No";
 
                                     exportableColumns.add(`${baseName}: Layout: Is Hidden`);
                                     exportableColumns.add(`${baseName}: Layout: Priority`);
