@@ -36400,6 +36400,14 @@ export type ImportRegistrantsMutationVariables = Exact<{
 
 export type ImportRegistrantsMutation = { readonly __typename?: 'mutation_root', readonly insert_registrant_Registrant?: Maybe<{ readonly __typename?: 'registrant_Registrant_mutation_response', readonly affected_rows: number }>, readonly insert_registrant_Invitation?: Maybe<{ readonly __typename?: 'registrant_Invitation_mutation_response', readonly affected_rows: number }>, readonly insert_permissions_GroupRegistrant?: Maybe<{ readonly __typename?: 'permissions_GroupRegistrant_mutation_response', readonly affected_rows: number }> };
 
+export type Import_UpdateElementMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  set: Content_Element_Set_Input;
+}>;
+
+
+export type Import_UpdateElementMutation = { readonly __typename?: 'mutation_root', readonly update_content_Element_by_pk?: Maybe<{ readonly __typename?: 'content_Element', readonly id: any }> };
+
 export type ImportContent_ItemTagFragment = { readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any };
 
 export type ImportContent_ItemExhibitionFragment = { readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly exhibitionId: any, readonly priority?: Maybe<number>, readonly layout?: Maybe<any> };
@@ -45849,6 +45857,40 @@ export function useImportRegistrantsMutation(baseOptions?: Apollo.MutationHookOp
 export type ImportRegistrantsMutationHookResult = ReturnType<typeof useImportRegistrantsMutation>;
 export type ImportRegistrantsMutationResult = Apollo.MutationResult<ImportRegistrantsMutation>;
 export type ImportRegistrantsMutationOptions = Apollo.BaseMutationOptions<ImportRegistrantsMutation, ImportRegistrantsMutationVariables>;
+export const Import_UpdateElementDocument = gql`
+    mutation Import_UpdateElement($id: uuid!, $set: content_Element_set_input!) {
+  update_content_Element_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+    `;
+export type Import_UpdateElementMutationFn = Apollo.MutationFunction<Import_UpdateElementMutation, Import_UpdateElementMutationVariables>;
+
+/**
+ * __useImport_UpdateElementMutation__
+ *
+ * To run a mutation, you first call `useImport_UpdateElementMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useImport_UpdateElementMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [importUpdateElementMutation, { data, loading, error }] = useImport_UpdateElementMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      set: // value for 'set'
+ *   },
+ * });
+ */
+export function useImport_UpdateElementMutation(baseOptions?: Apollo.MutationHookOptions<Import_UpdateElementMutation, Import_UpdateElementMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<Import_UpdateElementMutation, Import_UpdateElementMutationVariables>(Import_UpdateElementDocument, options);
+      }
+export type Import_UpdateElementMutationHookResult = ReturnType<typeof useImport_UpdateElementMutation>;
+export type Import_UpdateElementMutationResult = Apollo.MutationResult<Import_UpdateElementMutation>;
+export type Import_UpdateElementMutationOptions = Apollo.BaseMutationOptions<Import_UpdateElementMutation, Import_UpdateElementMutationVariables>;
 export const ImportContent_SelectAllDocument = gql`
     query ImportContent_SelectAll($conferenceId: uuid!) {
   content_Item(where: {conferenceId: {_eq: $conferenceId}}) {
