@@ -14,11 +14,13 @@ export interface AwsStackProps extends cdk.StackProps {
 }
 
 export class AwsStack extends cdk.Stack {
+    public readonly bucket: s3.Bucket;
+
     constructor(scope: cdk.Construct, id: string, props: AwsStackProps) {
         super(scope, id, props);
 
         /* S3 */
-        const bucket = this.createContentS3Bucket();
+        this.bucket = this.createContentS3Bucket();
 
         /* IAM */
 
@@ -27,11 +29,11 @@ export class AwsStack extends cdk.Stack {
         const channelStackAdministratorPolicy = this.createChannelStackAdministratorPolicy();
 
         // Service roles
-        const mediaLiveServiceRole = this.createMediaLiveServiceRole(bucket);
-        const mediaPackageServiceRole = this.createMediaPackageServiceRole(bucket);
-        const mediaConvertServiceRole = this.createMediaConvertServiceRole(bucket);
-        const transcribeServiceRole = this.createTranscribeServiceRole(bucket);
-        const elasticTranscoderServiceRole = this.createElasticTranscoderServiceRole(bucket);
+        const mediaLiveServiceRole = this.createMediaLiveServiceRole(this.bucket);
+        const mediaPackageServiceRole = this.createMediaPackageServiceRole(this.bucket);
+        const mediaConvertServiceRole = this.createMediaConvertServiceRole(this.bucket);
+        const transcribeServiceRole = this.createTranscribeServiceRole(this.bucket);
+        const elasticTranscoderServiceRole = this.createElasticTranscoderServiceRole(this.bucket);
 
         // IAM user
         const actionsUser = new iam.User(this, "ActionsUser", {});
@@ -57,11 +59,11 @@ export class AwsStack extends cdk.Stack {
         });
 
         /* S3 */
-        bucket.grantPut(actionsUser);
-        bucket.grantReadWrite(actionsUser);
+        this.bucket.grantPut(actionsUser);
+        this.bucket.grantReadWrite(actionsUser);
 
-        bucket.grantPut(vonageUser, props.vonageApiKey ? `${props.vonageApiKey}/*` : "*");
-        bucket.grantRead(vonageUser, props.vonageApiKey ? `${props.vonageApiKey}/*` : "*");
+        this.bucket.grantPut(vonageUser, props.vonageApiKey ? `${props.vonageApiKey}/*` : "*");
+        this.bucket.grantRead(vonageUser, props.vonageApiKey ? `${props.vonageApiKey}/*` : "*");
 
         /* Service Roles */
         mediaLiveServiceRole.grantPassRole(actionsUser);
@@ -103,7 +105,7 @@ export class AwsStack extends cdk.Stack {
         /* Outputs */
 
         // S3
-        this.createOutput("ContentBucketId", bucket.bucketName);
+        this.createOutput("ContentBucketId", this.bucket.bucketName);
 
         // IAM
         this.createOutput("ActionsUserAccessKeyId", actionsUserAccessKey.ref);

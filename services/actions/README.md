@@ -23,29 +23,6 @@ Eventually this may be split into multiple microservices.
 6. **Full Setup**: Create a Google Cloud project as described
    [below](#creating-a-google-cloud-project).
 
-## Deploying the image handler
-
-We use the AWS `serverless-image-handler` template for processing uploaded profile images. These are the steps to deploy it:
-
-1. Create a new secret in AWS Secrets Manager - you can use any secret name and secret key you like. Choose a secure random string and make a note of it.
-1. In AWS CloudFormation, create a stack from the template `https://solutions-reference.s3.amazonaws.com/serverless-image-handler/latest/serverless-image-handler.template`
-1. Choose the Stack name to be something unique, preferably using your `AWS_PREFIX`.
-1. Set the parameters as follows:
-
-- `CorsEnabled`: Yes
-- `CorsOrigin`: `http://localhost` if running locally, or an appropriate origin.
-- `SourceBuckets`: the name of your content bucket (i.e. `AWS_CONTENT_BUCKET_ID`)
-- `DeployDemoUI`: No
-- `LogRetentionPeriod`: 1
-- `EnableSignature`: Yes
-- `SecretsManagerSecret`: the name of the secret you created earlier
-- `SecretsManagerKey`: the key of the secret you created earlier
-- `EnableDefaultFallbackImage`: No
-- `AutoWebP`: Yes
-
-1. Deploy the stack and wait for creation to copmlete.
-1. Make a note of the `ApiEndpoint` output.
-
 ## Creating a Google Cloud project
 
 We use a Google Cloud project to provide access to the YouTube Data API with OAuth2.
@@ -139,45 +116,45 @@ BCP:
 
 You will not have the information required for all environment variables yet. See the _Complete later_ column for whether you should come back and fill in a value later on.
 
-| Key                                              | Value                                                                                                                         | From CDK | Complete later |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------- | -------------- |
-| AUTH0_API_DOMAIN                                 | `<auth0-subdomain>.auth0.com`                                                                                                 |          | Yes            |
-| AUTH0_AUDIENCE                                   | `hasura`                                                                                                                      |          |
-| AUTH0_ISSUER_DOMAIN                              | `https://<auth0-subdomain>.auth0.com/`                                                                                        |          | Yes            |
-| HASURA_ADMIN_SECRET                              | Hasura admin secret (used for queries/mutations to Hasura, you can choose this value freely)                                  |          |
-| EVENT_SECRET                                     | Event trigger secret (used to verify Hasura events, you can choose this value freely)                                         |          |
-| FRONTEND_DOMAIN                                  | The domain of the frontend website (e.g. `localhost:3000` or `in.midspace.app`)                                               |          | Yes            |
-| STOP_EMAILS_CONTACT_EMAIL_ADDRESS                | The email address users should contact when they received unexpected emails (e.g. `stop-emails@example.org`)                  |          |
-| FAILURE_NOTIFICATIONS_EMAIL_ADDRESS              | The email address the system should send notifications when errors occurr, such as failing to process a video.                |          |
-| GRAPHQL_API_SECURE_PROTOCOLS                     | Boolean. Default: true. Whether to use https/wss or not.                                                                      |          |
-| GRAPHQL_API_DOMAIN                               | The domain and port of the GraphQL server (Hasura)                                                                            |          |
-| HOST_SECURE_PROTOCOLS                            | Whether the actions service public URL uses https                                                                             |          |
-| HOST_DOMAIN                                      | The public domain of the actions service (e.g. your actions Packetriot/ngrok URL)                                             |          | Yes            |
-| AWS_PREFIX                                       | The deployment prefix you are using for your AWS deployment. Same as `clowdr/stackPrefix` in the `cdk.context.json`           |          |
-| AWS_ACCESS_KEY_ID                                | The access key ID for your AWS user                                                                                           | Yes      |
-| AWS_ACTIONS_USER_ACCESS_KEY_ID                   | The secret access key for your AWS user                                                                                       | Yes      |
-| AWS_REGION                                       | The AWS region to operate in                                                                                                  | Yes      |
-| AWS_CONTENT_BUCKET_ID                            | The S3 bucket ID for content storage                                                                                          | Yes      |
-| AWS_CHIME_MANAGER_ROLE_ARN                       | The IAM role providing management access to Amazon Chime                                                                      | Yes      |                |
-| AWS_ELASTIC_TRANSCODER_NOTIFICATIONS_TOPIC_ARN   | The IAM role to be passed to Elastic Transcoder                                                                               | Yes      |
-| AWS_ELASTIC_TRANSCODER_SERVICE_ROLE_ARN          | The ARN of the SNS topic for Elastic Transcoder notifications                                                                 | Yes      |
-| AWS_MEDIALIVE_INPUT_SECURITY_GROUP_ID            | The ID of the security group to be used for MediaLive RTMP Push inputs                                                        | Yes      |
-| AWS_MEDIALIVE_NOTIFICATIONS_TOPIC_ARN            | The ARN of the SNS topic for MediaLive notifications                                                                          | Yes      |
-| AWS_MEDIALIVE_SERVICE_ROLE_ARN                   | The IAM role to be passed to MediaLive                                                                                        | Yes      |
-| AWS_MEDIACONVERT_SERVICE_ROLE_ARN                | The IAM role to be passed to MediaConvert                                                                                     | Yes      |
-| AWS_MEDIACONVERT_API_ENDPOINT                    | The customer-specific MediaConvert endpoint                                                                                   | No       |
-| AWS_MEDIAPACKAGE_SERVICE_ROLE_ARN                | The IAM role to be passed to MediaPackage                                                                                     | Yes      |
-| AWS_MEDIAPACKAGE_HARVEST_NOTIFICATIONS_TOPIC_ARN | The ARN of the SNS topic for MediaPackage harvest job notifications                                                           | Yes      |
-| AWS_TRANSCRIBE_SERVICE_ROLE_ARN                  | The IAM role to be passed to Transcribe                                                                                       | Yes      |
-| AWS_TRANSCODE_NOTIFICATIONS_TOPIC_ARN            | The ARN of the SNS topic for MediaConvert notifications                                                                       | Yes      |
-| AWS_TRANSCRIBE_NOTIFICATIONS_TOPIC_ARN           | The ARN of the SNS topic for transcription notifications                                                                      | Yes      |
-| AWS_IMAGES_CLOUDFRONT_DISTRIBUTION_NAME          | The name of the Cloudfront distribution obtained from deploying the Serverless Image Handler template (e.g. `f9da4dbs83dnsl`) | No       |
-| AWS_IMAGES_SECRET_VALUE                          | The value you manually entered into Secrets Manager.                                                                          | No       |
-| OPENSHOT_BASE_URL                                | The base URL of the OpenShot instance                                                                                         |          | Yes            |
-| OPENSHOT_USERNAME                                | The username you created for your OpenShot instance                                                                           |          | Yes            |
-| OPENSHOT_PASSWORD                                | The password you created for your OpenShot instance                                                                           |          | Yes            |
-| OPENTOK_API_KEY                                  | Your Vonage Video API key (project API key)                                                                                   |          |
-| OPENTOK_API_SECRET                               | Your Vonage Video API secret                                                                                                  |          |
-| VONAGE_WEBHOOK_SECRET                            | A random token (your choice!) to be sent with Vonage webhook calls                                                            |          |
-| GOOGLE_CLIENT_ID                                 | The OAuth Client ID from your Google Cloud Platform project                                                                   |          |
-| GOOGLE_CLIENT_SECRET                             | The OAuth Client secret form your Google Cloud Platform project                                                               |          |
+| Key                                              | Value                                                                                                                                                                      | From CDK | Complete later |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------- |
+| AUTH0_API_DOMAIN                                 | `<auth0-subdomain>.auth0.com`                                                                                                                                              |          | Yes            |
+| AUTH0_AUDIENCE                                   | `hasura`                                                                                                                                                                   |          |
+| AUTH0_ISSUER_DOMAIN                              | `https://<auth0-subdomain>.auth0.com/`                                                                                                                                     |          | Yes            |
+| HASURA_ADMIN_SECRET                              | Hasura admin secret (used for queries/mutations to Hasura, you can choose this value freely)                                                                               |          |
+| EVENT_SECRET                                     | Event trigger secret (used to verify Hasura events, you can choose this value freely)                                                                                      |          |
+| FRONTEND_DOMAIN                                  | The domain of the frontend website (e.g. `localhost:3000` or `in.midspace.app`)                                                                                            |          | Yes            |
+| STOP_EMAILS_CONTACT_EMAIL_ADDRESS                | The email address users should contact when they received unexpected emails (e.g. `stop-emails@example.org`)                                                               |          |
+| FAILURE_NOTIFICATIONS_EMAIL_ADDRESS              | The email address the system should send notifications when errors occurr, such as failing to process a video.                                                             |          |
+| GRAPHQL_API_SECURE_PROTOCOLS                     | Boolean. Default: true. Whether to use https/wss or not.                                                                                                                   |          |
+| GRAPHQL_API_DOMAIN                               | The domain and port of the GraphQL server (Hasura)                                                                                                                         |          |
+| HOST_SECURE_PROTOCOLS                            | Whether the actions service public URL uses https                                                                                                                          |          |
+| HOST_DOMAIN                                      | The public domain of the actions service (e.g. your actions Packetriot/ngrok URL)                                                                                          |          | Yes            |
+| AWS_PREFIX                                       | The deployment prefix you are using for your AWS deployment. Same as `clowdr/stackPrefix` in the `cdk.context.json`                                                        |          |
+| AWS_ACCESS_KEY_ID                                | The access key ID for your AWS user                                                                                                                                        | Yes      |
+| AWS_ACTIONS_USER_ACCESS_KEY_ID                   | The secret access key for your AWS user                                                                                                                                    | Yes      |
+| AWS_REGION                                       | The AWS region to operate in                                                                                                                                               | Yes      |
+| AWS_CONTENT_BUCKET_ID                            | The S3 bucket ID for content storage                                                                                                                                       | Yes      |
+| AWS_CHIME_MANAGER_ROLE_ARN                       | The IAM role providing management access to Amazon Chime                                                                                                                   | Yes      |                |
+| AWS_ELASTIC_TRANSCODER_NOTIFICATIONS_TOPIC_ARN   | The IAM role to be passed to Elastic Transcoder                                                                                                                            | Yes      |
+| AWS_ELASTIC_TRANSCODER_SERVICE_ROLE_ARN          | The ARN of the SNS topic for Elastic Transcoder notifications                                                                                                              | Yes      |
+| AWS_MEDIALIVE_INPUT_SECURITY_GROUP_ID            | The ID of the security group to be used for MediaLive RTMP Push inputs                                                                                                     | Yes      |
+| AWS_MEDIALIVE_NOTIFICATIONS_TOPIC_ARN            | The ARN of the SNS topic for MediaLive notifications                                                                                                                       | Yes      |
+| AWS_MEDIALIVE_SERVICE_ROLE_ARN                   | The IAM role to be passed to MediaLive                                                                                                                                     | Yes      |
+| AWS_MEDIACONVERT_SERVICE_ROLE_ARN                | The IAM role to be passed to MediaConvert                                                                                                                                  | Yes      |
+| AWS_MEDIACONVERT_API_ENDPOINT                    | The customer-specific MediaConvert endpoint                                                                                                                                | No       |
+| AWS_MEDIAPACKAGE_SERVICE_ROLE_ARN                | The IAM role to be passed to MediaPackage                                                                                                                                  | Yes      |
+| AWS_MEDIAPACKAGE_HARVEST_NOTIFICATIONS_TOPIC_ARN | The ARN of the SNS topic for MediaPackage harvest job notifications                                                                                                        | Yes      |
+| AWS_TRANSCRIBE_SERVICE_ROLE_ARN                  | The IAM role to be passed to Transcribe                                                                                                                                    | Yes      |
+| AWS_TRANSCODE_NOTIFICATIONS_TOPIC_ARN            | The ARN of the SNS topic for MediaConvert notifications                                                                                                                    | Yes      |
+| AWS_TRANSCRIBE_NOTIFICATIONS_TOPIC_ARN           | The ARN of the SNS topic for transcription notifications                                                                                                                   | Yes      |
+| AWS_IMAGES_CLOUDFRONT_DISTRIBUTION_NAME          | The name of the Cloudfront distribution from the `img` AWS stack. If the `ApiEndpoint` output is `https://f9da4dbs83dnsl.cloudfront.net`, this should be `f9da4dbs83dnsl`. | Yes      |
+| AWS_IMAGES_SECRET_VALUE                          | The secret value created by the `img` AWS stack. You will need to retrieve this from the Secrets Manager console.                                                          | Yes      |
+| OPENSHOT_BASE_URL                                | The base URL of the OpenShot instance                                                                                                                                      |          | Yes            |
+| OPENSHOT_USERNAME                                | The username you created for your OpenShot instance                                                                                                                        |          | Yes            |
+| OPENSHOT_PASSWORD                                | The password you created for your OpenShot instance                                                                                                                        |          | Yes            |
+| OPENTOK_API_KEY                                  | Your Vonage Video API key (project API key)                                                                                                                                |          |
+| OPENTOK_API_SECRET                               | Your Vonage Video API secret                                                                                                                                               |          |
+| VONAGE_WEBHOOK_SECRET                            | A random token (your choice!) to be sent with Vonage webhook calls                                                                                                         |          |
+| GOOGLE_CLIENT_ID                                 | The OAuth Client ID from your Google Cloud Platform project                                                                                                                |          |
+| GOOGLE_CLIENT_SECRET                             | The OAuth Client secret form your Google Cloud Platform project                                                                                                            |          |
