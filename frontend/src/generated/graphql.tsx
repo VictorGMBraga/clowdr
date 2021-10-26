@@ -22596,6 +22596,10 @@ export type Query_Root = {
   readonly schedule_Continuation_by_pk?: Maybe<Schedule_Continuation>;
   /** fetch data from the table: "schedule.Event" */
   readonly schedule_Event: ReadonlyArray<Schedule_Event>;
+  /** fetch data from the table: "schedule.EventPeopleWithoutAccessToRooms" */
+  readonly schedule_EventPeopleWithoutAccessToRooms: ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms>;
+  /** fetch aggregated fields from the table: "schedule.EventPeopleWithoutAccessToRooms" */
+  readonly schedule_EventPeopleWithoutAccessToRooms_aggregate: Schedule_EventPeopleWithoutAccessToRooms_Aggregate;
   /** fetch data from the table: "schedule.EventProgramPerson" */
   readonly schedule_EventProgramPerson: ReadonlyArray<Schedule_EventProgramPerson>;
   /** fetch data from the table: "schedule.EventProgramPersonRole" */
@@ -24696,6 +24700,24 @@ export type Query_RootSchedule_EventArgs = {
   offset?: Maybe<Scalars['Int']>;
   order_by?: Maybe<ReadonlyArray<Schedule_Event_Order_By>>;
   where?: Maybe<Schedule_Event_Bool_Exp>;
+};
+
+
+export type Query_RootSchedule_EventPeopleWithoutAccessToRoomsArgs = {
+  distinct_on?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Order_By>>;
+  where?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>;
+};
+
+
+export type Query_RootSchedule_EventPeopleWithoutAccessToRooms_AggregateArgs = {
+  distinct_on?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Order_By>>;
+  where?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>;
 };
 
 
@@ -30896,6 +30918,108 @@ export type Schedule_EventEventTags_AggregateArgs = {
   where?: Maybe<Schedule_EventTag_Bool_Exp>;
 };
 
+/** columns and relationships of "schedule.EventPeopleWithoutAccessToRooms" */
+export type Schedule_EventPeopleWithoutAccessToRooms = {
+  readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms';
+  readonly created_at?: Maybe<Scalars['timestamptz']>;
+  /** An object relationship */
+  readonly event?: Maybe<Schedule_Event>;
+  readonly eventId?: Maybe<Scalars['uuid']>;
+  readonly id?: Maybe<Scalars['uuid']>;
+  /** An object relationship */
+  readonly person?: Maybe<Collection_ProgramPerson>;
+  readonly personId?: Maybe<Scalars['uuid']>;
+  readonly roleName?: Maybe<Scalars['String']>;
+  readonly updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregated selection of "schedule.EventPeopleWithoutAccessToRooms" */
+export type Schedule_EventPeopleWithoutAccessToRooms_Aggregate = {
+  readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms_aggregate';
+  readonly aggregate?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Aggregate_Fields>;
+  readonly nodes: ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms>;
+};
+
+/** aggregate fields of "schedule.EventPeopleWithoutAccessToRooms" */
+export type Schedule_EventPeopleWithoutAccessToRooms_Aggregate_Fields = {
+  readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms_aggregate_fields';
+  readonly count: Scalars['Int'];
+  readonly max?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Max_Fields>;
+  readonly min?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Min_Fields>;
+};
+
+
+/** aggregate fields of "schedule.EventPeopleWithoutAccessToRooms" */
+export type Schedule_EventPeopleWithoutAccessToRooms_Aggregate_FieldsCountArgs = {
+  columns?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Select_Column>>;
+  distinct?: Maybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "schedule.EventPeopleWithoutAccessToRooms". All fields are combined with a logical 'AND'. */
+export type Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp = {
+  readonly _and?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>>;
+  readonly _not?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>;
+  readonly _or?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>>;
+  readonly created_at?: Maybe<Timestamptz_Comparison_Exp>;
+  readonly event?: Maybe<Schedule_Event_Bool_Exp>;
+  readonly eventId?: Maybe<Uuid_Comparison_Exp>;
+  readonly id?: Maybe<Uuid_Comparison_Exp>;
+  readonly person?: Maybe<Collection_ProgramPerson_Bool_Exp>;
+  readonly personId?: Maybe<Uuid_Comparison_Exp>;
+  readonly roleName?: Maybe<String_Comparison_Exp>;
+  readonly updated_at?: Maybe<Timestamptz_Comparison_Exp>;
+};
+
+/** aggregate max on columns */
+export type Schedule_EventPeopleWithoutAccessToRooms_Max_Fields = {
+  readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms_max_fields';
+  readonly created_at?: Maybe<Scalars['timestamptz']>;
+  readonly eventId?: Maybe<Scalars['uuid']>;
+  readonly id?: Maybe<Scalars['uuid']>;
+  readonly personId?: Maybe<Scalars['uuid']>;
+  readonly roleName?: Maybe<Scalars['String']>;
+  readonly updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Schedule_EventPeopleWithoutAccessToRooms_Min_Fields = {
+  readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms_min_fields';
+  readonly created_at?: Maybe<Scalars['timestamptz']>;
+  readonly eventId?: Maybe<Scalars['uuid']>;
+  readonly id?: Maybe<Scalars['uuid']>;
+  readonly personId?: Maybe<Scalars['uuid']>;
+  readonly roleName?: Maybe<Scalars['String']>;
+  readonly updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** Ordering options when selecting data from "schedule.EventPeopleWithoutAccessToRooms". */
+export type Schedule_EventPeopleWithoutAccessToRooms_Order_By = {
+  readonly created_at?: Maybe<Order_By>;
+  readonly event?: Maybe<Schedule_Event_Order_By>;
+  readonly eventId?: Maybe<Order_By>;
+  readonly id?: Maybe<Order_By>;
+  readonly person?: Maybe<Collection_ProgramPerson_Order_By>;
+  readonly personId?: Maybe<Order_By>;
+  readonly roleName?: Maybe<Order_By>;
+  readonly updated_at?: Maybe<Order_By>;
+};
+
+/** select columns of table "schedule.EventPeopleWithoutAccessToRooms" */
+export enum Schedule_EventPeopleWithoutAccessToRooms_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  EventId = 'eventId',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersonId = 'personId',
+  /** column name */
+  RoleName = 'roleName',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
 /** columns and relationships of "schedule.EventProgramPerson" */
 export type Schedule_EventProgramPerson = {
   readonly __typename?: 'schedule_EventProgramPerson';
@@ -32624,6 +32748,10 @@ export type Subscription_Root = {
   readonly schedule_Continuation_by_pk?: Maybe<Schedule_Continuation>;
   /** fetch data from the table: "schedule.Event" */
   readonly schedule_Event: ReadonlyArray<Schedule_Event>;
+  /** fetch data from the table: "schedule.EventPeopleWithoutAccessToRooms" */
+  readonly schedule_EventPeopleWithoutAccessToRooms: ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms>;
+  /** fetch aggregated fields from the table: "schedule.EventPeopleWithoutAccessToRooms" */
+  readonly schedule_EventPeopleWithoutAccessToRooms_aggregate: Schedule_EventPeopleWithoutAccessToRooms_Aggregate;
   /** fetch data from the table: "schedule.EventProgramPerson" */
   readonly schedule_EventProgramPerson: ReadonlyArray<Schedule_EventProgramPerson>;
   /** fetch data from the table: "schedule.EventProgramPersonRole" */
@@ -34706,6 +34834,24 @@ export type Subscription_RootSchedule_EventArgs = {
   offset?: Maybe<Scalars['Int']>;
   order_by?: Maybe<ReadonlyArray<Schedule_Event_Order_By>>;
   where?: Maybe<Schedule_Event_Bool_Exp>;
+};
+
+
+export type Subscription_RootSchedule_EventPeopleWithoutAccessToRoomsArgs = {
+  distinct_on?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Order_By>>;
+  where?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>;
+};
+
+
+export type Subscription_RootSchedule_EventPeopleWithoutAccessToRooms_AggregateArgs = {
+  distinct_on?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<ReadonlyArray<Schedule_EventPeopleWithoutAccessToRooms_Order_By>>;
+  where?: Maybe<Schedule_EventPeopleWithoutAccessToRooms_Bool_Exp>;
 };
 
 
@@ -40101,7 +40247,7 @@ export type PreshowChecklistQueryVariables = Exact<{
 }>;
 
 
-export type PreshowChecklistQuery = { readonly __typename?: 'query_root', readonly allTags: ReadonlyArray<{ readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string }>, readonly itemsWithNoLinkedProgramPeople: ReadonlyArray<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly itemTags: ReadonlyArray<{ readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any }>, readonly itemPeople: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly id: any, readonly roleName: string, readonly person?: Maybe<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }> }> }>, readonly requiredProgramPeopleNotLinkedToRegistrant: ReadonlyArray<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }>, readonly requiredProgramPeopleNotRegistered: ReadonlyArray<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }>, readonly submissionsNotReceived: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly typeName: Content_ElementType_Enum, readonly item: { readonly __typename?: 'content_Item', readonly id: any, readonly title: string } }>, readonly livestreamEventsWithoutRegisteredPresenter: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly livestreamEventsWithoutRegisteredChair: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly prerecordedEventsWithoutVideo: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly prerecordedEventsWithVideo: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly data: any }> }> }>, readonly zoomEvents: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly data: any }> }> }>, readonly allLiveEventsWithPeople: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly intendedRoomModeName: Room_Mode_Enum, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly itemPeopleWithRegistrant: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly personId: any }>, readonly itemPeopleWithoutRegistrant: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly personId: any }> }>, readonly exhibition?: Maybe<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string }>, readonly eventPeople: ReadonlyArray<{ readonly __typename?: 'schedule_EventProgramPerson', readonly id: any, readonly personId: any }> }>, readonly emptyExhibitions: ReadonlyArray<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string }>, readonly emptyTags: ReadonlyArray<{ readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string }>, readonly exhibitionEventsWithoutExhibition: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly exhibitionEventsWithoutDiscussionRooms: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly exhibition?: Maybe<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string, readonly items: ReadonlyArray<{ readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly item: { readonly __typename?: 'content_Item', readonly id: any, readonly title: string } }> }> }>, readonly liveEventsWithoutContent: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly overlappingEvents: ReadonlyArray<{ readonly __typename?: 'schedule_OverlappingEvents', readonly eventX?: Maybe<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly eventY?: Maybe<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any> }> }>, readonly shortEvents: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly roomsWithStreams: ReadonlyArray<{ readonly __typename?: 'room_Room', readonly id: any, readonly name: string, readonly livestreamDuration?: Maybe<{ readonly __typename?: 'room_LivestreamDurations', readonly sum?: Maybe<any> }> }>, readonly eventsWithNegativeDuration: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly durationSeconds: number, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }> };
+export type PreshowChecklistQuery = { readonly __typename?: 'query_root', readonly allTags: ReadonlyArray<{ readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string }>, readonly itemsWithNoLinkedProgramPeople: ReadonlyArray<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly itemTags: ReadonlyArray<{ readonly __typename?: 'content_ItemTag', readonly id: any, readonly tagId: any }>, readonly itemPeople: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly id: any, readonly roleName: string, readonly person?: Maybe<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }> }> }>, readonly requiredProgramPeopleNotLinkedToRegistrant: ReadonlyArray<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }>, readonly requiredProgramPeopleNotRegistered: ReadonlyArray<{ readonly __typename?: 'collection_ProgramPersonWithAccessToken', readonly id?: Maybe<any>, readonly name?: Maybe<string>, readonly affiliation?: Maybe<string>, readonly email?: Maybe<string> }>, readonly submissionsNotReceived: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly typeName: Content_ElementType_Enum, readonly item: { readonly __typename?: 'content_Item', readonly id: any, readonly title: string } }>, readonly livestreamEventsWithoutRegisteredPresenter: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly livestreamEventsWithoutRegisteredChair: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly prerecordedEventsWithoutVideo: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly prerecordedEventsWithVideo: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly data: any }> }> }>, readonly zoomEvents: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly elements: ReadonlyArray<{ readonly __typename?: 'content_Element', readonly id: any, readonly name: string, readonly data: any }> }> }>, readonly allLiveEventsWithPeople: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly intendedRoomModeName: Room_Mode_Enum, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string, readonly itemPeopleWithRegistrant: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly personId: any }>, readonly itemPeopleWithoutRegistrant: ReadonlyArray<{ readonly __typename?: 'content_ItemProgramPerson', readonly personId: any }> }>, readonly exhibition?: Maybe<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string }>, readonly eventPeople: ReadonlyArray<{ readonly __typename?: 'schedule_EventProgramPerson', readonly id: any, readonly personId: any }> }>, readonly eventPeopleWithoutAccessToRooms: ReadonlyArray<{ readonly __typename?: 'schedule_EventPeopleWithoutAccessToRooms', readonly id?: Maybe<any>, readonly eventId?: Maybe<any>, readonly personId?: Maybe<any>, readonly event?: Maybe<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly startTime: any, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly person?: Maybe<{ readonly __typename?: 'collection_ProgramPerson', readonly id: any, readonly name: string, readonly affiliation?: Maybe<string> }> }>, readonly emptyExhibitions: ReadonlyArray<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string }>, readonly emptyTags: ReadonlyArray<{ readonly __typename?: 'collection_Tag', readonly id: any, readonly name: string }>, readonly exhibitionEventsWithoutExhibition: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly exhibitionEventsWithoutDiscussionRooms: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly exhibition?: Maybe<{ readonly __typename?: 'collection_Exhibition', readonly id: any, readonly name: string, readonly items: ReadonlyArray<{ readonly __typename?: 'content_ItemExhibition', readonly id: any, readonly item: { readonly __typename?: 'content_Item', readonly id: any, readonly title: string } }> }> }>, readonly liveEventsWithoutContent: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly overlappingEvents: ReadonlyArray<{ readonly __typename?: 'schedule_OverlappingEvents', readonly eventX?: Maybe<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string } }>, readonly eventY?: Maybe<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any> }> }>, readonly shortEvents: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly endTime?: Maybe<any>, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }>, readonly roomsWithStreams: ReadonlyArray<{ readonly __typename?: 'room_Room', readonly id: any, readonly name: string, readonly livestreamDuration?: Maybe<{ readonly __typename?: 'room_LivestreamDurations', readonly sum?: Maybe<any> }> }>, readonly eventsWithNegativeDuration: ReadonlyArray<{ readonly __typename?: 'schedule_Event', readonly id: any, readonly name: string, readonly startTime: any, readonly durationSeconds: number, readonly room: { readonly __typename?: 'room_Room', readonly id: any, readonly name: string }, readonly item?: Maybe<{ readonly __typename?: 'content_Item', readonly id: any, readonly title: string }> }> };
 
 export type ManageContent_ItemTagFragment = { readonly __typename?: 'content_ItemTag', readonly id: any, readonly itemId: any, readonly tagId: any };
 
@@ -47427,6 +47573,26 @@ export const PreshowChecklistDocument = gql`
     eventPeople {
       id
       personId
+    }
+  }
+  eventPeopleWithoutAccessToRooms: schedule_EventPeopleWithoutAccessToRooms(
+    where: {event: {conferenceId: {_eq: $conferenceId}}}
+  ) {
+    id
+    eventId
+    personId
+    event {
+      id
+      startTime
+      room {
+        id
+        name
+      }
+    }
+    person {
+      id
+      name
+      affiliation
     }
   }
   emptyExhibitions: collection_Exhibition(

@@ -85,6 +85,7 @@
 - "!include room_ShuffleRoom.yaml"
 - "!include schedule_Continuation.yaml"
 - "!include schedule_Event.yaml"
+- "!include schedule_EventPeopleWithoutAccessToRooms.yaml"
 - "!include schedule_EventProgramPerson.yaml"
 - "!include schedule_EventProgramPersonRole.yaml"
 - "!include schedule_EventTag.yaml"

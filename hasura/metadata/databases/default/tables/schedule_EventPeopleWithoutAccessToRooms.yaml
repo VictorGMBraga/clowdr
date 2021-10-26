@@ -1,0 +1,51 @@
+table:
+  name: EventPeopleWithoutAccessToRooms
+  schema: schedule
+object_relationships:
+- name: event
+  using:
+    manual_configuration:
+      column_mapping:
+        eventId: id
+      insertion_order: null
+      remote_table:
+        name: Event
+        schema: schedule
+- name: person
+  using:
+    manual_configuration:
+      column_mapping:
+        personId: id
+      insertion_order: null
+      remote_table:
+        name: ProgramPerson
+        schema: collection
+select_permissions:
+- permission:
+    columns:
+    - id
+    - eventId
+    - roleName
+    - created_at
+    - updated_at
+    - personId
+    filter:
+      _and:
+      - event:
+          conference:
+            slug:
+              _eq: X-Hasura-Conference-Slug
+      - _exists:
+          _table:
+            name: FlatUserPermission
+            schema: public
+          _where:
+            _and:
+            - user_id:
+                _eq: X-Hasura-User-Id
+            - slug:
+                _eq: X-Hasura-Conference-Slug
+            - permission_name:
+                _in:
+                - CONFERENCE_MANAGE_SCHEDULE
+  role: user

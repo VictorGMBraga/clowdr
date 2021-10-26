@@ -269,6 +269,27 @@ gql`
             }
         }
 
+        eventPeopleWithoutAccessToRooms: schedule_EventPeopleWithoutAccessToRooms(
+            where: { event: { conferenceId: { _eq: $conferenceId } } }
+        ) {
+            id
+            eventId
+            personId
+            event {
+                id
+                startTime
+                room {
+                    id
+                    name
+                }
+            }
+            person {
+                id
+                name
+                affiliation
+            }
+        }
+
         emptyExhibitions: collection_Exhibition(where: { conferenceId: { _eq: $conferenceId }, _not: { items: {} } }) {
             id
             name
@@ -734,6 +755,51 @@ export default function ChecklistPage(): JSX.Element {
             </ChecklistItem>
         );
     }, [checklistResponse.data?.allLiveEventsWithPeople]);
+
+    const eventPeopleWithoutAccessToRooms = useMemo(() => {
+        const peopleNoAccess =
+            checklistResponse.data?.eventPeopleWithoutAccessToRooms &&
+            Object.values(
+                R.groupBy((x) => x.eventId ?? "unknown", checklistResponse.data.eventPeopleWithoutAccessToRooms)
+            );
+        return (
+            <ChecklistItem
+                title="Event people have access to private program rooms"
+                status="error"
+                description={
+                    "If an event is scheduled in a private room, the presenters, chairs and other such people must be made members of the room in order to access the event."
+                }
+                action={{
+                    title: "Manage Rooms",
+                    url: "rooms",
+                }}
+                ok={!!peopleNoAccess && peopleNoAccess.length === 0}
+            >
+                <Text>The following events do not meet the requirements of this rule:</Text>
+                <ExpandableList
+                    items={peopleNoAccess}
+                    sortBy={(x) => x[0].event?.startTime ?? Number.POSITIVE_INFINITY}
+                >
+                    {(x) => (
+                        <>
+                            {x[0].event ? (
+                                <>
+                                    {new Date(x[0].event.startTime).toLocaleString()} - {x[0].event?.room?.name}
+                                    {x.map((y) => (
+                                        <Fragment key={y.id}>
+                                            <br />
+                                            {y.person?.name}{" "}
+                                            {y.person?.affiliation?.length ? `(${y.person.affiliation})` : ""}
+                                        </Fragment>
+                                    ))}
+                                </>
+                            ) : undefined}
+                        </>
+                    )}
+                </ExpandableList>
+            </ChecklistItem>
+        );
+    }, [checklistResponse.data?.eventPeopleWithoutAccessToRooms]);
 
     const submissionsNotReceived = useMemo(() => {
         return (
@@ -1362,6 +1428,8 @@ export default function ChecklistPage(): JSX.Element {
                         <GridItem colSpan={defaultColSpan}>{eventPeopleSyncedToContentPeople}</GridItem>
                         <GridItem colSpan={defaultColSpan}></GridItem>
                         <GridItem colSpan={defaultColSpan}>{eventPeopleSyncedToContentPeopleWithRegistrant}</GridItem>
+                        <GridItem colSpan={defaultColSpan}></GridItem>
+                        <GridItem colSpan={defaultColSpan}>{eventPeopleWithoutAccessToRooms}</GridItem>
                         <GridItem colSpan={2} rowSpan={2}></GridItem>
 
                         <GridItem colSpan={defaultColSpan}>
