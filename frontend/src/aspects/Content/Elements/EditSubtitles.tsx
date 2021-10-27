@@ -131,7 +131,7 @@ export default function EditSubtitles({
                 console.error("Failed to save subtitles", e);
                 toast({
                     title: "Failed to save subtitles",
-                    description: e.message,
+                    description: (e as Error).message,
                     status: "error",
                 });
             }
@@ -211,7 +211,7 @@ export default function EditSubtitles({
                                                 toast({
                                                     status: "error",
                                                     title: "Failed to save uploaded subtitles",
-                                                    description: err.message,
+                                                    description: (err as Error).message,
                                                 });
                                             } finally {
                                                 setUploadingSrt(false);
