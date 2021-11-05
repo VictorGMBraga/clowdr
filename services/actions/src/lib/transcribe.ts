@@ -5,7 +5,7 @@ import AmazonS3URI from "amazon-s3-uri";
 import assert from "assert";
 import path from "path";
 import R from "ramda";
-import { assertType, is } from "typescript-is";
+import { is } from "typescript-is";
 import { v4 as uuidv4 } from "uuid";
 import {
     CreateTranscriptionJobDocument,
@@ -13,10 +13,8 @@ import {
     GetTranscriptionJobDocument,
 } from "../generated/graphql";
 import { apolloClient } from "../graphqlClient";
-import { S3, Transcribe } from "./aws/awsClient";
-import { getS3TextObject } from "./aws/s3";
+import { Transcribe } from "./aws/awsClient";
 import { getLatestVersion } from "./element";
-import { AmazonTranscribeOutput, convertJsonToSrt } from "./subtitleConvert";
 
 gql`
     mutation CreateTranscriptionJob(
@@ -82,20 +80,6 @@ export async function completeTranscriptionJob(awsTranscribeJobName: string): Pr
     assert(bucket, "Could not parse bucket from S3 URI");
     assert(key, "Could not parse key from S3 URI");
 
-    const transcriptText = await getS3TextObject(bucket, key);
-    const transcriptJson = await JSON.parse(transcriptText);
-
-    assertType<AmazonTranscribeOutput>(transcriptJson);
-
-    const transcriptSrt = convertJsonToSrt(transcriptJson);
-    const transcriptSrtKey = replaceExtension(key, ".srt");
-
-    await S3.putObject({
-        Bucket: bucket,
-        Key: transcriptSrtKey,
-        Body: transcriptSrt,
-    });
-
     // Save the new version of the content item
     const newVersion = R.clone(latestVersion);
     assert(
@@ -105,7 +89,7 @@ export async function completeTranscriptionJob(awsTranscribeJobName: string): Pr
 
     newVersion.data.subtitles = {};
     newVersion.data.subtitles[job.languageCode] = {
-        s3Url: `s3://${bucket}/${transcriptSrtKey}`,
+        s3Url: `s3://${bucket}/${replaceExtension(key, ".srt")}`,
         status: AWSJobStatus.Completed,
     };
 
@@ -205,6 +189,7 @@ export async function startTranscribe(transcodeS3Url: string, elementId: string)
         },
         OutputBucketName: process.env.AWS_CONTENT_BUCKET_ID,
         OutputKey: outputKey,
+        Subtitles: { Formats: ["srt"] },
     });
 
     await apolloClient.mutate({
